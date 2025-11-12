@@ -1,0 +1,425 @@
+/* Q4 Visualization Styles - Consistent with Q3 */
+
+body {
+    background: #f0f4f8;
+    min-height: 100vh;
+    margin: 0;
+    padding: 20px;
+    position: relative;
+}
+
+/* Back Button */
+.back-btn {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background: #f8f9fa;
+    border: 2px solid #e5e7eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    font-size: 22px;
+    color: #4a5568;
+    transition: all 0.3s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+    z-index: 10;
+}
+
+.back-arrow {
+    display: block;
+}
+
+.loading-spinner {
+    display: none;
+    width: 20px;
+    height: 20px;
+    border: 3px solid #e5e7eb;
+    border-top-color: #3498db;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+.back-btn.loading .back-arrow {
+    display: none;
+}
+
+.back-btn.loading .loading-spinner {
+    display: block;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.back-btn:hover {
+    background: #3498db;
+    color: white;
+    border-color: #3498db;
+    transform: scale(1.08);
+    box-shadow: 0 4px 8px rgba(52, 152, 219, 0.25);
+}
+
+.back-btn.loading:hover {
+    transform: none;
+    cursor: wait;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.visualization-container {
+    background: white;
+    border-radius: 8px;
+    padding: 40px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    position: relative;
+}
+
+/* Title */
+.chart-title-container {
+    text-align: center;
+    margin-bottom: 30px;
+    padding: 0 60px 20px 60px;
+    border-bottom: 2px solid #e5e7eb;
+}
+
+.chart-title {
+    font-size: 1.6rem;
+    color: #4a5f7f;
+    margin: 0 0 8px 0;
+    font-weight: 600;
+    display: block;
+}
+
+.chart-subtitle {
+    font-size: 0.95rem;
+    color: #6b7280;
+    margin: 0;
+    font-weight: 400;
+}
+
+/* Controls */
+.controls {
+    margin-bottom: 30px;
+    background: #f9fafb;
+    border-radius: 6px;
+    border: 1px solid #e5e7eb;
+    overflow: hidden;
+}
+
+.controls-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 20px;
+    background: white;
+    border-bottom: 1px solid #e5e7eb;
+    cursor: pointer;
+}
+
+.controls-header h3 {
+    margin: 0;
+    font-size: 1rem;
+    color: #4a5f7f;
+    font-weight: 600;
+}
+
+.toggle-btn {
+    background: none;
+    border: none;
+    color: #4a5568;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 4px 8px;
+    transition: color 0.3s;
+}
+
+.toggle-btn:hover {
+    color: #3498db;
+}
+
+.filters-content {
+    background: #f9fafb;
+    border-radius: 0;
+    padding: 20px;
+    margin-top: 0;
+}
+
+.filter-section h4 {
+    margin: 0 0 12px 0;
+    font-size: 0.95rem;
+    color: #4a5568;
+    font-weight: 600;
+}
+
+.jurisdiction-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.link-btn {
+    background: #f0f4f8;
+    border: 1px solid #cbd5e0;
+    color: #4a5568;
+    cursor: pointer;
+    font-size: 13px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    text-decoration: none;
+    transition: all 0.3s;
+    font-weight: 500;
+}
+
+.link-btn:hover {
+    background: #3498db;
+    color: white;
+    border-color: #3498db;
+}
+
+.separator {
+    color: #cbd5e0;
+}
+
+.jurisdiction-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    background: white;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s;
+    border: 1px solid #e5e7eb;
+}
+
+.checkbox-label:hover {
+    background: #f0f4f8;
+    border-color: #3498db;
+}
+
+.checkbox-label input[type="checkbox"] {
+    cursor: pointer;
+    width: 16px;
+    height: 16px;
+}
+
+.checkbox-label span {
+    font-size: 14px;
+    font-weight: 500;
+    color: #4a5568;
+}
+
+/* Chart */
+#chart {
+    min-height: 500px;
+    margin-bottom: 30px;
+    overflow: visible;
+}
+
+#chart svg {
+    overflow: visible;
+}
+
+.bar-segment {
+    transition: opacity 0.3s;
+}
+
+.bar-segment:hover {
+    opacity: 0.8;
+    cursor: pointer;
+}
+
+.axis text {
+    font-size: 12px;
+    fill: #4a5568;
+}
+
+.axis line,
+.axis path {
+    stroke: #cbd5e0;
+}
+
+.grid line {
+    stroke: #e5e7eb;
+    stroke-dasharray: 3,3;
+}
+
+.value-label {
+    font-size: 11px;
+    fill: #4a5568;
+    font-weight: 500;
+}
+
+/* Legend */
+#legend {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    padding: 20px;
+    background: #f9fafb;
+    border-radius: 8px;
+    max-width: 100%;;
+    margin: 0 auto;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    padding: 10px 12px;
+    border-radius: 8px;
+    transition: all 0.3s;
+    background: white;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    white-space: nowrap;
+}
+
+.legend-item:hover {
+    background-color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.legend-item.inactive {
+    opacity: 0.4;
+}
+
+.legend-color {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+}
+
+.legend-text {
+    font-size: 13px;
+    font-weight: 500;
+    color: #4a5568;
+}
+
+/* Tooltip */
+.tooltip {
+    position: absolute;
+    background: rgba(0, 0, 0, 0.85);
+    color: white;
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.tooltip.visible {
+    opacity: 1;
+}
+
+.tooltip-title {
+    font-weight: 600;
+    margin-bottom: 6px;
+    font-size: 14px;
+}
+
+.tooltip-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 4px 0;
+}
+
+.tooltip-color {
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+}
+
+.tooltip-value {
+    font-weight: 600;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .jurisdiction-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    #chart {
+        min-height: 450px;
+        padding: 15px 5px;
+    }
+
+    .chart-title {
+        font-size: 1.4rem;
+    }
+
+    .chart-subtitle {
+        font-size: 0.9rem;
+    }
+
+    .visualization-container {
+        padding: 30px 20px;
+    }
+
+    .x-axis text {
+        transform: rotate(-45deg);
+        text-anchor: end !important;
+        font-size: 10px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .jurisdiction-grid {
+        grid-template-columns: 1fr;
+    }
+    #chart {
+        min-height: 400px;
+    }
+
+    .chart-title {
+        font-size: 1.2rem;
+    }
+
+    .chart-subtitle {
+        font-size: 0.85rem;
+    }
+
+    .legend-item {
+        padding: 8px 10px;
+        font-size: 12px;
+    }
+
+    .x-axis text {
+        transform: rotate(-90deg);
+        text-anchor: end !important;
+        font-size: 8px !important;
+    }
+}
+
+@media (min-width: 1400px) {
+    .container {
+        max-width: 1600px;
+    }
+
+    #chart {
+        min-height: 600px;
+    }
+}

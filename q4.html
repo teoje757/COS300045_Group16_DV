@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Q4: Fine Detection Methods by Jurisdiction</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/q4-style.css">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="visualization-container">
+            <a href="q3.html" class="back-btn" title="Back to Q3">
+                <span class="back-arrow">←</span>
+                <span class="loading-spinner"></span>
+            </a>
+            
+            <!-- Simple Title -->
+            <div class="chart-title-container">
+                <h2 class="chart-title">Fine Detection Methods by Jurisdiction (2024)</h2>
+                <p class="chart-subtitle">Camera-detected vs Police-issued Traffic Fines</p>
+            </div>
+
+            <!-- Filter Controls -->
+            <div class="controls">
+                <div class="controls-header">
+                    <h3>Filters</h3>
+                    <button id="toggle-filters" class="toggle-btn">Show ▶</button>
+                </div>
+                
+                <div id="filters-content" class="filters-content" style="display: none;">
+                    <div class="filter-section">
+                        <h4>Select Jurisdictions</h4>
+                        <div class="jurisdiction-controls">
+                            <button id="select-all" class="link-btn">All</button>
+                            <span class="separator">|</span>
+                            <button id="deselect-all" class="link-btn">None</button>
+                        </div>
+                        <div class="jurisdiction-grid">
+                            <label class="checkbox-label">
+                                <input type="checkbox" value="NSW" checked>
+                                <span>NSW</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" value="VIC" checked>
+                                <span>VIC</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" value="QLD" checked>
+                                <span>QLD</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" value="WA" checked>
+                                <span>WA</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" value="SA" checked>
+                                <span>SA</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" value="TAS" checked>
+                                <span>TAS</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" value="ACT" checked>
+                                <span>ACT</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" value="NT" checked>
+                                <span>NT</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chart Container -->
+            <div id="chart"></div>
+
+            <!-- Legend -->
+            <div id="legend"></div>
+        </div>
+    </div>
+
+    <script>
+        // Add loading state to back button
+        document.querySelector('.back-btn').addEventListener('click', function(e) {
+            this.classList.add('loading');
+        });
+    </script>
+    <script src="js/q4.js"></script>
+</body>
+</html>

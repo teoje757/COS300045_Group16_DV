@@ -148,3 +148,68 @@ footer {
     .hero h1 { font-size: 1.4rem; }
     .hero-lead { font-size: 0.95rem; }
 }
+
+/* Visualization Links Section */
+.viz-links {
+    padding: 2rem 0;
+}
+
+.viz-links h2 {
+    text-align: center;
+    color: #2c3e50;
+    margin-bottom: 2rem;
+    font-size: 2rem;
+}
+
+.viz-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.viz-card {
+    display: block;
+    padding: 2rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 12px;
+    text-decoration: none;
+    color: white;
+    transition: transform 0.3s, box-shadow 0.3s;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.viz-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+}
+
+.viz-card h3 {
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+}
+
+.viz-card p {
+    margin-bottom: 1.5rem;
+    opacity: 0.9;
+    line-height: 1.6;
+}
+
+.viz-btn {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 6px;
+    font-weight: 600;
+    transition: background 0.3s;
+}
+
+.viz-card:hover .viz-btn {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+@media (max-width: 768px) {
+    .viz-cards {
+        grid-template-columns: 1fr;
+    }
+}
