@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Q1: Mobile Phone Fines Comparison</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/q3-style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="visualization-container">
+            <a href="index.html" class="back-btn" title="Back to Home">←</a>
+
+            <div class="chart-title-container">
+                <h2 class="chart-title">Detection Method Comparison</h2>
+                <p class="chart-subtitle">Police vs Camera issued fines over time</p>
+            </div>
+
+            <div class="controls">
+                <div class="controls-header">
+                    <h3>Filters <span id="toggle-filters" class="toggle-arrow">›</span></h3>
+                </div>
+                <div id="filters-content" class="filters-content" style="display: none;">
+                    <div class="filter-section">
+                        <div class="filter-header">
+                            <label>Detection Method</label>
+                        </div>
+                        <div class="jurisdiction-grid">
+                            <label class="jurisdiction-checkbox">
+                                <input type="checkbox" data-method="Police" checked>
+                                <span class="checkbox-custom"></span>
+                                <span class="jurisdiction-label">Police</span>
+                            </label>
+                            <label class="jurisdiction-checkbox">
+                                <input type="checkbox" data-method="Camera" checked>
+                                <span class="checkbox-custom"></span>
+                                <span class="jurisdiction-label">Camera</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="chart"></div>
+            <div id="legend"></div>
+
+            <div class="insights-section">
+                <h3 class="insights-title">Key Insights</h3>
+                <div class="insights-content">
+                    <div class="insight-item">
+                        <span class="insight-icon">📈</span>
+                        <span class="insight-text">Compare camera- and police-issued fines over time. Use the filters to focus on a specific method.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/q1.js"></script>
+</body>
+</html>
