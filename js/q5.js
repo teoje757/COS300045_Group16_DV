@@ -56,8 +56,6 @@ const divergingScale = d3.scaleDiverging(d3.interpolatePRGn);
 const mapColorScale = d3.scaleSequential(d3.interpolateViridis);
 const mapProjection = d3.geoMercator();
 const mapPath = d3.geoPath(mapProjection);
-const GEOJSON_URL =
-    "https://raw.githubusercontent.com/tonywr71/GeoJSON-TopoJSON-Australia/master/geojson/australia-states.json";
 
 // Ordered categories (west → east) keep spatial reasoning consistent
 const jurisdictionOrder = ["WA", "NT", "SA", "QLD", "NSW", "ACT", "VIC", "TAS"];
@@ -67,16 +65,182 @@ let years = [];
 let finesExtent = [0, 1];
 let deltaExtent = [1, -1];
 let mapYear = 2024;
-let mapFeatures = [];
-const STATE_CODE_LOOKUP = {
-    "New South Wales": "NSW",
-    Victoria: "VIC",
-    Queensland: "QLD",
-    "South Australia": "SA",
-    Tasmania: "TAS",
-    "Western Australia": "WA",
-    "Northern Territory": "NT",
-    "Australian Capital Territory": "ACT"
+const AUS_GEOJSON = {
+    type: "FeatureCollection",
+    features: [
+        {
+            type: "Feature",
+            id: "WA",
+            properties: { name: "Western Australia" },
+            geometry: {
+                type: "Polygon",
+                coordinates: [
+                    [
+                        [112, -35],
+                        [113.5, -34.5],
+                        [115, -31.5],
+                        [116.5, -30.5],
+                        [119, -28.5],
+                        [121, -26],
+                        [123, -24],
+                        [124, -22],
+                        [124, -19],
+                        [122, -18],
+                        [120, -16],
+                        [118, -17.5],
+                        [117, -21],
+                        [115, -24],
+                        [113.5, -27],
+                        [112.5, -30],
+                        [112, -33],
+                        [112, -35]
+                    ]
+                ]
+            }
+        },
+        {
+            type: "Feature",
+            id: "NT",
+            properties: { name: "Northern Territory" },
+            geometry: {
+                type: "Polygon",
+                coordinates: [
+                    [
+                        [129, -26],
+                        [137, -26],
+                        [138, -23],
+                        [137.5, -18],
+                        [135, -14],
+                        [132, -12],
+                        [129, -13],
+                        [129, -26]
+                    ]
+                ]
+            }
+        },
+        {
+            type: "Feature",
+            id: "SA",
+            properties: { name: "South Australia" },
+            geometry: {
+                type: "Polygon",
+                coordinates: [
+                    [
+                        [129, -37.5],
+                        [140.5, -37.5],
+                        [140.5, -35],
+                        [138, -34],
+                        [137, -32],
+                        [135, -31],
+                        [133, -32],
+                        [131.5, -34],
+                        [129, -35],
+                        [129, -37.5]
+                    ]
+                ]
+            }
+        },
+        {
+            type: "Feature",
+            id: "QLD",
+            properties: { name: "Queensland" },
+            geometry: {
+                type: "Polygon",
+                coordinates: [
+                    [
+                        [138, -28.5],
+                        [141, -28.5],
+                        [146, -29],
+                        [152, -25],
+                        [153.5, -22],
+                        [152.5, -19],
+                        [150, -14],
+                        [147, -12],
+                        [143, -11],
+                        [141, -13],
+                        [139.5, -17],
+                        [138, -22],
+                        [138, -28.5]
+                    ]
+                ]
+            }
+        },
+        {
+            type: "Feature",
+            id: "NSW",
+            properties: { name: "New South Wales" },
+            geometry: {
+                type: "Polygon",
+                coordinates: [
+                    [
+                        [141, -37],
+                        [151, -37],
+                        [152.5, -34],
+                        [151.5, -31],
+                        [150, -29],
+                        [147, -29.2],
+                        [144, -33],
+                        [141, -34],
+                        [141, -37]
+                    ]
+                ]
+            }
+        },
+        {
+            type: "Feature",
+            id: "ACT",
+            properties: { name: "Australian Capital Territory" },
+            geometry: {
+                type: "Polygon",
+                coordinates: [
+                    [
+                        [148.7, -35.5],
+                        [149.3, -35.5],
+                        [149.3, -35],
+                        [148.7, -35],
+                        [148.7, -35.5]
+                    ]
+                ]
+            }
+        },
+        {
+            type: "Feature",
+            id: "VIC",
+            properties: { name: "Victoria" },
+            geometry: {
+                type: "Polygon",
+                coordinates: [
+                    [
+                        [141, -39],
+                        [149, -39],
+                        [150, -38],
+                        [147, -36],
+                        [144, -36.5],
+                        [142, -38],
+                        [141, -39]
+                    ]
+                ]
+            }
+        },
+        {
+            type: "Feature",
+            id: "TAS",
+            properties: { name: "Tasmania" },
+            geometry: {
+                type: "Polygon",
+                coordinates: [
+                    [
+                        [144, -44.5],
+                        [148, -44.5],
+                        [149, -42],
+                        [147, -41],
+                        [145, -42],
+                        [144, -44.5]
+                    ]
+                ]
+            }
+        }
+    ]
 };
 
 const formatter = d3.format(",d");
@@ -206,8 +370,8 @@ function getYearData(year) {
 }
 
 function drawMap() {
-    if (!mapFeatures.length) return;
-    mapProjection.fitSize([900, 450], { type: "FeatureCollection", features: mapFeatures });
+    const mapFeatures = AUS_GEOJSON.features;
+    mapProjection.fitSize([900, 450], AUS_GEOJSON);
     mapSvg
         .selectAll("path.state")
         .data(mapFeatures, (d) => d.id)
@@ -233,7 +397,7 @@ function drawMap() {
 }
 
 function updateMap() {
-    if (!mapFeatures.length) return;
+    const mapFeatures = AUS_GEOJSON.features;
     const yearData = getYearData(mapYear);
     mapYearLabel.textContent = mapYear;
     mapColorScale.domain(finesExtent);
@@ -383,15 +547,12 @@ function attachEvents() {
     });
 }
 
-Promise.all([
-    d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", (d) => ({
-        year: +d.YEAR,
-        jurisdiction: d.JURISDICTION,
-        fines: +d.FINES
-    })),
-    d3.json(GEOJSON_URL)
-])
-    .then(([data, geojson]) => {
+d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", (d) => ({
+    year: +d.YEAR,
+    jurisdiction: d.JURISDICTION,
+    fines: +d.FINES
+}))
+    .then((data) => {
         dataset = data.sort((a, b) => d3.ascending(a.year, b.year));
         years = Array.from(new Set(dataset.map((d) => d.year))).sort((a, b) => a - b);
         finesExtent = d3.extent(dataset, (d) => d.fines);
@@ -406,19 +567,6 @@ Promise.all([
         divergingScale.domain([deltaExtent[0], 0, deltaExtent[1]]);
         mapColorScale.domain(finesExtent);
 
-        mapFeatures = (geojson?.features || [])
-            .map((feature) => {
-                const stateName = feature.properties?.STATE_NAME || feature.properties?.name;
-                const code = STATE_CODE_LOOKUP[stateName];
-                if (!code) return null;
-                return {
-                    ...feature,
-                    id: code,
-                    properties: { ...feature.properties, code }
-                };
-            })
-            .filter(Boolean);
-
         populateControls();
         attachEvents();
         drawMap();
@@ -426,8 +574,8 @@ Promise.all([
         updateChart();
     })
     .catch((error) => {
-        console.error("Failed to load Q5 resources", error);
-        annotationsEl.html("<li>Unable to load data. Please check the CSV/GeoJSON paths.</li>");
-        mapAnnotation.textContent = "Map unavailable — check internet connection for GeoJSON.";
+        console.error("Failed to load Q5 CSV", error);
+        annotationsEl.html("<li>Unable to load data. Please check the CSV path.</li>");
+        mapAnnotation.textContent = "Map unavailable — CSV failed to load.";
     });
 
