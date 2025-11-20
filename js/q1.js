@@ -246,37 +246,69 @@ async function createChart() {
 
         createLegend();
 
-        // Find peak point for annotation (first method)
-        const firstMethodData = Array.from(nested)[0][1];
-        const peakPoint = firstMethodData.reduce((max, d) => 
-            d.value > max.value ? d : max
-        );
+        // Highlight the peak points for both Police and Camera-issued fines (if present)
+        function placePeakMarker(seriesName, className, labelPrefix) {
+            const sData = nested.get(seriesName);
+            if (!sData || sData.length === 0) return;
+            const peak = sData.reduce((max, d) => (max == null || d.value > max.value) ? d : max, null);
+            if (!peak || peak.value == null) return;
 
-        // Add annotation line
-        svg.append('line')
-            .attr('class', 'annotation-line')
-            .attr('x1', x(peakPoint.date))
-            .attr('x2', x(peakPoint.date))
-            .attr('y1', y(peakPoint.value))
-            .attr('y2', y(peakPoint.value) - 30)
-            .style('opacity', 0)
-            .transition()
-            .delay(1500)
-            .duration(500)
-            .style('opacity', 1);
+            const cx = x(peak.date);
+            const cy = y(peak.value);
 
-        // Add annotation text
-        svg.append('text')
-            .attr('class', 'annotation')
-            .attr('x', x(peakPoint.date))
-            .attr('y', y(peakPoint.value) - 35)
-            .attr('text-anchor', 'middle')
-            .text(`Peak: ${peakPoint.value.toLocaleString()}`)
-            .style('opacity', 0)
-            .transition()
-            .delay(1500)
-            .duration(500)
-            .style('opacity', 1);
+            svg.append('circle')
+                .attr('class', className)
+                .attr('cx', cx)
+                .attr('cy', cy)
+                .attr('r', 5)
+                .style('fill', colorMap[seriesName])
+                .style('stroke', '#ffffff')
+                .style('stroke-width', 1.5)
+                .style('opacity', 0)
+                .transition()
+                .delay(1200)
+                .duration(400)
+                .style('opacity', 1);
+
+            // Choose label side: prefer right, but if too close to edge place left
+            const labelOffsetX = (cx > width - 120) ? -8 - 120 : 8;
+            const anchor = (labelOffsetX < 0) ? 'end' : 'start';
+
+            svg.append('text')
+                .attr('class', `${className}-label`)
+                .attr('x', cx + labelOffsetX)
+                .attr('y', cy - 8)
+                .attr('text-anchor', anchor)
+                .text(`${labelPrefix}: ${peak.value.toLocaleString()}`)
+                .style('fill', colorMap[seriesName])
+                .style('font-weight', '600')
+                .style('font-size', '12px')
+                .style('opacity', 0)
+                .transition()
+                .delay(1200)
+                .duration(400)
+                .style('opacity', 1);
+        }
+
+        placePeakMarker('Police', 'police-peak', 'Peak');
+        placePeakMarker('Camera', 'camera-peak', 'Peak');
+
+        // Wire up the controls header toggle (show/hide filters) for q1
+        const controlsHeader = document.getElementById('q1-controls-header');
+        const filtersContent = document.getElementById('filters-content');
+        const toggleArrow = document.getElementById('toggle-filters');
+        if (controlsHeader && filtersContent && toggleArrow) {
+            controlsHeader.addEventListener('click', () => {
+                const isOpen = filtersContent.style.display === 'block';
+                if (isOpen) {
+                    filtersContent.style.display = 'none';
+                    toggleArrow.classList.remove('open');
+                } else {
+                    filtersContent.style.display = 'block';
+                    toggleArrow.classList.add('open');
+                }
+            });
+        }
 
         // Create tooltip
         const tooltip = d3.select('body').append('div')
