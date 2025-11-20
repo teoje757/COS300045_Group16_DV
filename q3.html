@@ -30,8 +30,7 @@
             <!-- Filter Controls -->
             <div class="controls">
                 <div class="controls-header">
-                    <h3>Filters</h3>
-                    <button id="toggle-filters" class="toggle-btn">Show ▶</button>
+                    <h3>Filters <span id="toggle-filters" class="toggle-arrow">›</span></h3>
                 </div>
                 
                 <div id="filters-content" class="filters-content" style="display: none;">
@@ -146,6 +145,29 @@
 
             <!-- Legend -->
             <div id="legend"></div>
+
+            <!-- Insights Section -->
+            <div class="insights-section">
+                <h3 class="insights-title">Key Insights</h3>
+                <div class="insights-content">
+                    <div class="insight-item">
+                        <span class="insight-icon">🏆</span>
+                        <span class="insight-text"><strong>Highest Enforcement Rate:</strong> ACT consistently shows the highest mobile-phone fine rate per 10,000 licenses, significantly exceeding other jurisdictions.</span>
+                    </div>
+                    <div class="insight-item">
+                        <span class="insight-icon">📈</span>
+                        <span class="insight-text"><strong>Regional Variation:</strong> Enforcement rates vary dramatically across jurisdictions, with up to 10x difference between highest and lowest rates, suggesting different enforcement priorities or detection capabilities.</span>
+                    </div>
+                    <div class="insight-item">
+                        <span class="insight-icon">🔍</span>
+                        <span class="insight-text"><strong>Temporal Patterns:</strong> Use the year range filter to examine how enforcement evolved over time, particularly during COVID-19 (2020-2021) when traffic patterns changed significantly.</span>
+                    </div>
+                    <div class="insight-item">
+                        <span class="insight-icon">💡</span>
+                        <span class="insight-text"><strong>Interactive Tip:</strong> Click any bar or legend item to focus on a single jurisdiction, or use checkboxes to compare specific states. Click outside the chart or press ESC to reset.</span>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 

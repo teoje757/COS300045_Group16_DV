@@ -1,4 +1,33 @@
-// Q3: Enforcement Trends Over Time - D3 Visualization
+/**
+ * Q3: Jurisdiction Comparison - Mobile Phone Enforcement Rates
+ * Horizontal Bar Chart (Sorted Descending)
+ * 
+ * DATA GOVERNANCE:
+ * - Source: Q3_Fines_per_10k_by_jurisdiction.csv
+ * - Data represents aggregated, anonymized traffic enforcement statistics
+ * - No personal identifiable information (PII) included
+ * - Data used with proper consent for academic research purposes
+ * - Storage: Local CSV file, version controlled in Git
+ * - Lineage: Sourced from government open data portals (2010-2024)
+ * - Security: Public data, no encryption required
+ * - Compliance: Follows Australian Privacy Principles (APP)
+ * 
+ * METADATA:
+ * - YEAR: Calendar year (numeric, 2010-2024)
+ * - JURISDICTION: Australian state/territory code (categorical: NSW, VIC, QLD, WA, SA, TAS, ACT, NT)
+ * - Sum(FINES): Total count of mobile phone fines issued (numeric, ≥0)
+ * - Licenses: Number of driver licenses in jurisdiction (numeric, >0)
+ * - Fines per 10K: Enforcement rate per 10,000 licenses (derived: FINES/Licenses * 10000)
+ * 
+ * BIG IDEA:
+ * "ACT leads Australia in mobile phone enforcement intensity,
+ *  revealing stark regional differences in detection capability and policy priorities."
+ * 
+ * NARRATIVE ARC:
+ * - Context: Mobile phone use while driving is a major road safety issue
+ * - Conflict: Enforcement rates vary 10x across jurisdictions
+ * - Insight: Technology investment and policy focus drive the disparity
+ */
 
 // Configuration
 const config = {
@@ -253,6 +282,33 @@ function createChart() {
 
     // Draw bars
     drawBars(jurisdictionData);
+    
+    // Add annotation for highest value (storytelling: highlight the outlier)
+    if (jurisdictionData.length > 0 && jurisdictionData.length > 1) {
+        const highest = jurisdictionData[0];  // Already sorted descending
+        const annotationY = yScale(highest.jurisdiction) + yScale.bandwidth() / 2;
+        
+        const annotation = chartGroup.append('g')
+            .attr('class', 'annotation')
+            .style('opacity', 0);
+        
+        // Position annotation above the bar instead of to the right
+        annotation.append('text')
+            .attr('x', xScale(highest.avgFinesPer10k / 2))
+            .attr('y', annotationY - yScale.bandwidth() - 5)
+            .attr('text-anchor', 'middle')
+            .style('font-size', '11px')
+            .style('fill', '#2c3e50')
+            .style('font-weight', '600')
+            .text(`↑ Highest: ${highest.jurisdiction} (${highest.avgFinesPer10k.toFixed(1)})`);
+        
+        // Fade in annotation after bars animate
+        annotation
+            .transition()
+            .delay(1500)
+            .duration(800)
+            .style('opacity', 0.8);
+    }
 }
 
 // Draw horizontal bars
@@ -562,10 +618,11 @@ function setupEventListeners() {
     });
 
     // Toggle filters visibility
-    const toggleBtn = document.getElementById('toggle-filters');
+    const toggleArrow = document.getElementById('toggle-filters');
     const filtersContent = document.getElementById('filters-content');
+    const controlsHeader = document.querySelector('.controls-header');
     
-    toggleBtn.addEventListener('click', (e) => {
+    controlsHeader.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
         
@@ -573,11 +630,11 @@ function setupEventListeners() {
         
         if (isHidden) {
             filtersContent.style.display = 'grid';
-            toggleBtn.textContent = 'Hide ▼';
+            toggleArrow.classList.add('open');
             console.log('Showing filters');
         } else {
             filtersContent.style.display = 'none';
-            toggleBtn.textContent = 'Show ▶';
+            toggleArrow.classList.remove('open');
             console.log('Hiding filters');
         }
     });

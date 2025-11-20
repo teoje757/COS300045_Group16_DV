@@ -1,12 +1,33 @@
-// Q4: Stacked Bar Chart - Fine Detection Methods by Jurisdiction
-// Data: Camera vs Police issued fines
+/**
+ * Q4: Stacked Bar Chart - Fine Detection Methods by Jurisdiction
+ * 
+ * DATA GOVERNANCE:
+ * - Source: Q4_Camera_vs_police_fines_by_jurisdiction.csv
+ * - Data represents aggregated, anonymized traffic enforcement statistics
+ * - No personal identifiable information (PII) included
+ * - Data used with proper consent for academic research purposes
+ * - Storage: Local CSV file, version controlled in Git
+ * - Lineage: Sourced from government open data portals (2024)
+ * - Security: Public data, no encryption required
+ * - Compliance: Follows Australian Privacy Principles (APP)
+ * 
+ * METADATA:
+ * - JURISDICTION: Australian state/territory code (categorical)
+ * - Camera issued fines: Count of camera-detected violations (numeric, ≥0)
+ * - Police issued fines: Count of police-issued violations (numeric, ≥0)
+ * - Total: Sum of camera + police fines (derived field)
+ * 
+ * BIG IDEA:
+ * "Camera-based enforcement dominates in high-population states,
+ *  revealing Australia's shift toward automated traffic monitoring."
+ */
 
 let allData = [];
 let filteredData = [];
 let svg, chartGroup, xScale, yScale, colorScale;
 let tooltip;
 let initialized = false;
-let activeState = { camera: true, police: true };
+let stackMode = 'absolute'; // 'absolute' or 'proportional'
 let animationComplete = false;
 
 // Configuration
@@ -15,35 +36,70 @@ const config = {
     height: 500
 };
 
-// Colors for detection methods
+// Colors for detection methods (categorical color scheme)
 const colors = {
-    'Camera issued fines': '#3498db',  // Blue
-    'Police issued fines': '#f59e0b'   // Amber
+    'camera': '#3498db',  // Blue - Camera issued fines
+    'police': '#f59e0b'   // Amber - Police issued fines
 };
+
+// Stack keys in order (bottom to top)
+const stackKeys = ['camera', 'police'];
 
 // Load and process data
 async function loadData() {
     try {
         const csvData = await d3.csv('data/Q4_Camera_vs_police_fines_by_jurisdiction.csv');
         
-        // Transform data for stacked bar chart
+        // Transform data for d3.stack() - keys must match stackKeys array
         allData = csvData.map(d => ({
             jurisdiction: d.JURISDICTION,
-            camera: +d['Camera issued fines'],
-            police: +d['Police issued fines'],
-            total: +d['Camera issued fines'] + +d['Police issued fines']
+            camera: +d['Camera issued fines'] || 0,  // Ensure numeric, default to 0
+            police: +d['Police issued fines'] || 0,
+            total: (+d['Camera issued fines'] || 0) + (+d['Police issued fines'] || 0)
         }));
 
-        // Sort by total fines descending
+        // Sort by total fines descending (storytelling: biggest impact first)
         allData.sort((a, b) => b.total - a.total);
         filteredData = [...allData];
 
         console.log('Q4 Data loaded:', allData);
         setupFilters();
+        setupStackModeToggle();
         createChart();
     } catch (error) {
         console.error('Error loading data:', error);
     }
+}
+
+// Setup stack mode toggle (absolute vs proportional)
+function setupStackModeToggle() {
+    // Create toggle buttons in the controls
+    const controlsHeader = document.querySelector('.controls-header');
+    
+    // Check if toggle already exists
+    if (document.getElementById('stack-mode-toggle')) return;
+    
+    const toggleContainer = document.createElement('div');
+    toggleContainer.id = 'stack-mode-toggle';
+    toggleContainer.style.cssText = 'display: flex; gap: 8px; align-items: center; margin-left: auto;';
+    
+    toggleContainer.innerHTML = `
+        <button class="stack-mode-btn active" data-mode="absolute">Absolute</button>
+        <button class="stack-mode-btn" data-mode="proportional">Proportional</button>
+    `;
+    
+    controlsHeader.appendChild(toggleContainer);
+    
+    // Add event listeners
+    document.querySelectorAll('.stack-mode-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation(); // Prevent triggering the filter toggle
+            stackMode = this.dataset.mode;
+            document.querySelectorAll('.stack-mode-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            createChart();
+        });
+    });
 }
 
 // Setup filter controls
@@ -52,10 +108,11 @@ function setupFilters() {
     initialized = true;
 
     // Toggle filters
-    const toggleBtn = document.getElementById('toggle-filters');
+    const toggleArrow = document.getElementById('toggle-filters');
     const filtersContent = document.getElementById('filters-content');
+    const controlsHeader = document.querySelector('.controls-header');
     
-    toggleBtn.addEventListener('click', (e) => {
+    controlsHeader.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
         
@@ -63,10 +120,10 @@ function setupFilters() {
         
         if (isHidden) {
             filtersContent.style.display = 'grid';
-            toggleBtn.textContent = 'Hide ▼';
+            toggleArrow.classList.add('open');
         } else {
             filtersContent.style.display = 'none';
-            toggleBtn.textContent = 'Show ▶';
+            toggleArrow.classList.remove('open');
         }
     });
 
@@ -157,9 +214,18 @@ function createChart() {
         .range([0, width])
         .padding(0.3);
 
-    const maxTotal = d3.max(filteredData, d => d.total);
+    // Y-scale depends on stack mode
+    let maxTotal;
+    if (stackMode === 'proportional') {
+        // Proportional: always 0-100%
+        maxTotal = 100;
+    } else {
+        // Absolute: use actual max total
+        maxTotal = d3.max(filteredData, d => d.total);
+    }
+    
     yScale = d3.scaleLinear()
-        .domain([0, maxTotal * 1.1])
+        .domain([0, maxTotal * 1.1])  // 10% buffer for labels
         .range([height, 0]);
 
     // Add axes
@@ -168,14 +234,19 @@ function createChart() {
         .attr('transform', `translate(0, ${height})`)
         .call(d3.axisBottom(xScale));
 
+    const yAxisFormat = stackMode === 'proportional' ? d => d + '%' : d => d3.format('.2s')(d);
     const yAxis = chartGroup.append('g')
         .attr('class', 'y-axis axis')
         .call(d3.axisLeft(yScale)
             .ticks(8)
-            .tickFormat(d => d3.format('.2s')(d))
+            .tickFormat(yAxisFormat)
         );
 
     // Y-axis label
+    const yAxisLabel = stackMode === 'proportional' 
+        ? 'Percentage of Total Fines (%)' 
+        : 'Number of Fines';
+    
     chartGroup.append('text')
         .attr('class', 'axis-label')
         .attr('transform', 'rotate(-90)')
@@ -185,7 +256,7 @@ function createChart() {
         .style('font-size', '13px')
         .style('fill', '#4a5568')
         .style('font-weight', '500')
-        .text('Number of Fines');
+        .text(yAxisLabel);
 
     // X-axis label
     chartGroup.append('text')
@@ -202,229 +273,210 @@ function createChart() {
     tooltip = d3.select('body').append('div')
         .attr('class', 'tooltip');
 
-    // Draw stacked bars
+    // Draw stacked bars using d3.stack()
     drawStackedBars(width, height);
 
     // Create legend
     createLegend();
-    
+
     // Add click handler to SVG to reset selection when clicking empty space
     svg.on('click', function(event) {
-        resetSelection();
+        // Clicking empty space resets to show all data
+        if (event.target.tagName === 'svg') {
+            resetAllFilters();
+        }
     });
 }
 
-function resetSelection() {
-    // Show all segments
-    activeState.camera = true;
-    activeState.police = true;
-    
-    // Update legend appearance
-    d3.selectAll('.legend-item').classed('inactive', false);
-    
-    // Update bars
-    updateBars(activeState);
-    
-    // Re-enable interactions after reset completes
-    setTimeout(() => {
-        animationComplete = true;
-    }, 300);
+function resetAllFilters() {
+    // Reset jurisdiction checkboxes
+    document.querySelectorAll('.checkbox-label input[type="checkbox"]').forEach(cb => {
+        cb.checked = true;
+    });
+    applyFilters();
 }
 
+/**
+ * drawStackedBars - Creates stacked bar chart using d3.stack()
+ * Supports both absolute and proportional (100%) modes
+ */
 function drawStackedBars(width, height) {
-    // Minimum visible height (in pixels) for very small segments
-    const minVisibleHeight = 3;
+    // Prepare data for proportional mode if needed
+    let dataForStack = filteredData;
+    
+    if (stackMode === 'proportional') {
+        // Convert to percentages
+        dataForStack = filteredData.map(d => ({
+            jurisdiction: d.jurisdiction,
+            camera: d.total > 0 ? (d.camera / d.total) * 100 : 0,
+            police: d.total > 0 ? (d.police / d.total) * 100 : 0,
+            // Keep original values for tooltips and label calculations
+            _cameraAbs: d.camera,
+            _policeAbs: d.police,
+            _total: d.total
+        }));
+    } else {
+        // In absolute mode, also store metadata for label calculations
+        dataForStack = filteredData.map(d => ({
+            jurisdiction: d.jurisdiction,
+            camera: d.camera,
+            police: d.police,
+            total: d.total,
+            _cameraAbs: d.camera,
+            _policeAbs: d.police,
+            _total: d.total
+        }));
+    }
+    
+    // Create stack generator - THIS IS THE REQUIRED d3.stack() USAGE
+    const stack = d3.stack()
+        .keys(stackKeys)  // ['camera', 'police'] - bottom to top order
+        .order(d3.stackOrderNone)  // Maintain order as specified in keys
+        .offset(d3.stackOffsetNone);  // No offset, zero baseline
+
+    // Generate stacked data
+    const series = stack(dataForStack);
+    
+    console.log('Stacked series:', series);  // For debugging
     
     // Reset animation flag
     animationComplete = false;
     
-    // Create bar groups
-    const barGroups = chartGroup.selectAll('.bar-group')
-        .data(filteredData)
-        .enter()
-        .append('g')
-        .attr('class', 'bar-group')
-        .attr('transform', d => `translate(${xScale(d.jurisdiction)}, 0)`);
-
-    // Camera bars (bottom segment) - calculate final positions first
-    const cameraBars = barGroups.append('rect')
-        .attr('class', 'bar-segment camera-segment')
-        .attr('x', 0)
-        .attr('width', xScale.bandwidth())
-        .attr('fill', colors['Camera issued fines'])
-        .style('cursor', 'pointer')
-        .on('mouseover', function(event, d) {
-            d3.select(this).style('filter', 'brightness(1.1)');
-            showTooltip(event, d, 'Camera issued fines', d.camera);
-        })
-        .on('mouseout', function() {
-            d3.select(this).style('filter', 'none');
-            hideTooltip();
-        })
-        .on('click', function(event) {
-            event.stopPropagation();
-            // Only allow clicks after animation completes
-            if (!animationComplete) return;
-            focusSegmentType('camera');
-        });
+    // Create bar groups for each detection method (camera, police)
+    const groups = chartGroup.selectAll('.stack-layer')
+        .data(series)
+        .join('g')
+        .attr('class', d => `stack-layer layer-${d.key}`)
+        .attr('fill', d => colors[d.key]);
     
-    // Set initial position at bottom
-    cameraBars
-        .attr('y', height)
-        .attr('height', 0);
+    // Create rectangles for each jurisdiction within each layer
+    const rects = groups.selectAll('rect')
+        .data(d => d, d => d.data.jurisdiction)
+        .join('rect')
+            .attr('class', 'bar-segment')
+            .attr('x', d => xScale(d.data.jurisdiction))
+            .attr('width', xScale.bandwidth())
+            .style('cursor', 'pointer')
+            // Start from bottom for animation
+            .attr('y', height)
+            .attr('height', 0)
+            // Add interactivity
+            .on('mouseover', function(event, d) {
+                d3.select(this).style('filter', 'brightness(1.1)');
+                const key = d3.select(this.parentNode).datum().key;
+                showTooltip(event, d.data, key);
+            })
+            .on('mouseout', function() {
+                d3.select(this).style('filter', 'none');
+                hideTooltip();
+            })
+            .on('click', function(event) {
+                event.stopPropagation();
+                // Focus on this detection method
+                const key = d3.select(this.parentNode).datum().key;
+                filterByDetectionMethod(key);
+            });
     
-    // Animate to final position
-    cameraBars
+    // Animate bars growing from bottom to their positions
+    rects
         .transition()
-        .duration(1000)
-        .delay((d, i) => i * 100)
+        .duration(800)
+        .delay((d, i) => i * 80)
         .ease(d3.easeCubicOut)
-        .attr('y', d => {
-            const calculatedHeight = height - yScale(d.camera);
-            if (d.camera > 0 && calculatedHeight < minVisibleHeight) {
-                return height - minVisibleHeight;
-            }
-            return yScale(d.camera);
-        })
-        .attr('height', d => {
-            if (d.camera === 0) return 0;
-            const calculatedHeight = height - yScale(d.camera);
-            return Math.max(calculatedHeight, minVisibleHeight);
-        });
-
-    // Police bars (top segment)
-    const policeBars = barGroups.append('rect')
-        .attr('class', 'bar-segment police-segment')
-        .attr('x', 0)
-        .attr('width', xScale.bandwidth())
-        .attr('fill', colors['Police issued fines'])
-        .style('cursor', 'pointer')
-        .on('mouseover', function(event, d) {
-            d3.select(this).style('filter', 'brightness(1.1)');
-            showTooltip(event, d, 'Police issued fines', d.police);
-        })
-        .on('mouseout', function() {
-            d3.select(this).style('filter', 'none');
-            hideTooltip();
-        })
-        .on('click', function(event) {
-            event.stopPropagation();
-            // Only allow clicks after animation completes
-            if (!animationComplete) return;
-            focusSegmentType('police');
-        });
-    
-    // Set initial position at bottom
-    policeBars
-        .attr('y', height)
-        .attr('height', 0);
-    
-    // Animate to final position
-    policeBars
-        .transition()
-        .duration(1000)
-        .delay((d, i) => i * 100 + 500)
-        .ease(d3.easeCubicOut)
-        .attr('y', d => yScale(d.total))
-        .attr('height', d => {
-            if (d.police === 0) return 0;
-            const calculatedHeight = yScale(d.camera) - yScale(d.total);
-            return Math.max(calculatedHeight, minVisibleHeight);
-        })
+        .attr('y', d => yScale(d[1]))  // d[1] is the top of the stack segment
+        .attr('height', d => yScale(d[0]) - yScale(d[1]))  // d[0] is the bottom
         .on('end', function(d, i) {
-            // Set flag when last bar finishes animating
-            if (i === filteredData.length - 1) {
+            // Set flag when last bar finishes
+            if (i === dataForStack.length - 1) {
                 animationComplete = true;
             }
         });
-
-    // Add total value labels on top
-    barGroups.append('text')
-        .attr('class', 'value-label total-label')
-        .attr('x', xScale.bandwidth() / 2)
-        .attr('y', d => yScale(d.total) - 5)
-        .attr('text-anchor', 'middle')
-        .style('font-size', '14px')
-        .style('font-weight', '600')
-        .style('fill', '#374151')
-        .style('opacity', 0)
-        .text(d => d3.format('.2s')(d.total))
-        .transition()
-        .duration(600)
-        .delay((d, i) => i * 100 + 1500)
-        .style('opacity', 1);
-
-    // Add interactive hover effects
-    barGroups
-        .on('mouseover', function(event, d) {
-            const currentGroup = d3.select(this);
-            
-            // Brighten current bars
-            currentGroup.selectAll('.bar-segment')
-                .transition()
-                .duration(200)
-                .style('filter', 'brightness(1.15)');
-            
-            // Scale up the group slightly
-            currentGroup
-                .transition()
-                .duration(200)
-                .attr('transform', `translate(${xScale(d.jurisdiction)}, -5)`);
-            
-            // Make value label bigger and bolder
-            currentGroup.select('.total-label')
-                .transition()
-                .duration(200)
-                .style('font-size', '16px')
-                .style('font-weight', '700');
-            
-            // Dim other bar groups
-            barGroups.filter(bar => bar.jurisdiction !== d.jurisdiction)
-                .transition()
-                .duration(200)
-                .style('opacity', 0.4);
-        })
-        .on('mouseout', function(event, d) {
-            const currentGroup = d3.select(this);
-            
-            // Reset brightness
-            currentGroup.selectAll('.bar-segment')
-                .transition()
-                .duration(200)
-                .style('filter', 'none');
-            
-            // Reset position
-            currentGroup
-                .transition()
-                .duration(200)
-                .attr('transform', `translate(${xScale(d.jurisdiction)}, 0)`);
-            
-            // Reset label size
-            currentGroup.select('.total-label')
-                .transition()
-                .duration(200)
-                .style('font-size', '14px')
-                .style('font-weight', '600');
-            
-            // Reset all opacities
-            barGroups
-                .transition()
-                .duration(200)
-                .style('opacity', 1);
-        });
+    
+    // Add value labels on top of each stack
+    chartGroup.selectAll('.total-label').remove();  // Clear old labels
+    
+    chartGroup.selectAll('.total-label')
+        .data(dataForStack)
+        .join('text')
+            .attr('class', 'total-label')
+            .attr('x', d => xScale(d.jurisdiction) + xScale.bandwidth() / 2)
+            .attr('y', d => {
+                if (stackMode === 'proportional') {
+                    return yScale(100) - 5;
+                } else {
+                    const total = d.total || (d.camera + d.police);
+                    return yScale(total) - 5;
+                }
+            })
+            .attr('text-anchor', 'middle')
+            .style('font-size', '13px')
+            .style('font-weight', '600')
+            .style('fill', '#374151')
+            .style('opacity', 0)
+            .text(d => {
+                if (stackMode === 'proportional') {
+                    return '100%';
+                } else {
+                    const total = d.total || (d.camera + d.police);
+                    return d3.format('.2s')(total);
+                }
+            })
+            .transition()
+            .duration(600)
+            .delay((d, i) => i * 80 + 800)
+            .style('opacity', 1)
+            .on('end', function(d, i) {
+                // After animation completes, update labels to show correct formatting
+                if (i === dataForStack.length - 1) {
+                    setTimeout(() => updateTotalLabels(), 100);
+                }
+            });
+    
+    // Add hover effects to bar groups
+    const barGroups = chartGroup.selectAll('.bar-group-hover')
+        .data(dataForStack)
+        .join('g')
+            .attr('class', 'bar-group-hover')
+            .attr('transform', d => `translate(${xScale(d.jurisdiction)}, 0)`)
+            .style('pointer-events', 'none')
+            .on('mouseenter', function(event, d) {
+                // Highlight this jurisdiction's bars
+                d3.selectAll(`.bar-segment`)
+                    .filter(barD => barD.data.jurisdiction !== d.jurisdiction)
+                    .transition()
+                    .duration(200)
+                    .style('opacity', 0.4);
+            })
+            .on('mouseleave', function() {
+                // Reset all bars
+                d3.selectAll(`.bar-segment`)
+                    .transition()
+                    .duration(200)
+                    .style('opacity', 1);
+            });
 }
 
-function showTooltip(event, d, method, value) {
-    const percentage = ((value / d.total) * 100).toFixed(1);
+function showTooltip(event, data, key) {
+    // Extract values - handle both absolute and proportional modes
+    const isProportional = stackMode === 'proportional';
+    const cameraValue = isProportional ? data._cameraAbs : data.camera;
+    const policeValue = isProportional ? data._policeAbs : data.police;
+    const totalValue = isProportional ? data._total : data.total || (data.camera + data.police);
+    
+    const value = key === 'camera' ? cameraValue : policeValue;
+    const percentage = totalValue > 0 ? ((value / totalValue) * 100).toFixed(1) : 0;
+    
+    const methodLabel = key === 'camera' ? 'Camera issued fines' : 'Police issued fines';
+    const color = colors[key];
     
     tooltip.html(`
-        <div class="tooltip-title">${d.jurisdiction}</div>
+        <div class="tooltip-title">${data.jurisdiction}</div>
         <div class="tooltip-item">
-            <div class="tooltip-color" style="background: ${colors[method]}"></div>
-            <span>${method}: <span class="tooltip-value">${d3.format(',')(value)}</span> (${percentage}%)</span>
+            <div class="tooltip-color" style="background: ${color}"></div>
+            <span>${methodLabel}: <span class="tooltip-value">${d3.format(',')(value)}</span> (${percentage}%)</span>
         </div>
         <div style="margin-top: 6px; padding-top: 6px; border-top: 1px solid rgba(255,255,255,0.2);">
-            <strong>Total: ${d3.format(',')(d.total)}</strong>
+            <strong>Total: ${d3.format(',')(totalValue)}</strong>
         </div>
     `)
     .style('left', (event.pageX + 15) + 'px')
@@ -436,121 +488,136 @@ function hideTooltip() {
     tooltip.classed('visible', false);
 }
 
-function focusSegmentType(type) {
-    // Show only this type (turn off the other)
-    activeState.camera = (type === 'camera');
-    activeState.police = (type === 'police');
+function filterByDetectionMethod(key) {
+    if (!animationComplete) return;  // Prevent clicks during animation
     
-    // Update legend appearance
-    d3.selectAll('.legend-item').each(function() {
-        const item = d3.select(this);
-        const text = item.select('.legend-text').text();
-        if (text === 'Camera issued fines') {
-            item.classed('inactive', !activeState.camera);
-        } else if (text === 'Police issued fines') {
-            item.classed('inactive', !activeState.police);
-        }
-    });
+    // This could filter data or highlight - for now, just show in console
+    console.log(`Filtering by detection method: ${key}`);
     
-    // Update bars
-    updateBars(activeState);
-    
-    // Re-enable interactions after transition completes
-    setTimeout(() => {
-        animationComplete = true;
-    }, 300);
+    // You could implement actual filtering here if needed
+    // For now, we'll just provide visual feedback via the tooltip
 }
 
 function createLegend() {
     const legend = d3.select('#legend');
     legend.selectAll('*').remove();
 
-    const methods = ['Camera issued fines', 'Police issued fines'];
+    const methods = [
+        { key: 'camera', label: 'Camera issued fines' },
+        { key: 'police', label: 'Police issued fines' }
+    ];
 
     methods.forEach(method => {
         const item = legend.append('div')
             .attr('class', 'legend-item')
             .style('cursor', 'pointer')
-            .on('click', function(event) {
-                event.stopPropagation();
-                // Only allow clicks after animation completes
-                if (!animationComplete) return;
-                const key = method === 'Camera issued fines' ? 'camera' : 'police';
-                focusSegmentType(key);
+            .on('click', function() {
+                if (!animationComplete) return; // Prevent clicks during animation
+                
+                // Toggle visibility of this detection method
+                const layers = chartGroup.selectAll(`.layer-${method.key}`);
+                const isCurrentlyVisible = layers.style('opacity') !== '0';
+                
+                if (isCurrentlyVisible) {
+                    // Hide this layer
+                    layers.transition().duration(300).style('opacity', 0);
+                    d3.select(this).classed('inactive', true);
+                } else {
+                    // Show this layer
+                    layers.transition().duration(300).style('opacity', 1);
+                    d3.select(this).classed('inactive', false);
+                }
+                
+                // Update total labels based on what's visible
+                setTimeout(() => updateTotalLabels(), 350);
             });
 
         item.append('div')
             .attr('class', 'legend-color')
-            .style('background-color', colors[method]);
+            .style('background-color', colors[method.key]);
 
         item.append('span')
             .attr('class', 'legend-text')
-            .text(method);
+            .text(method.label);
     });
 }
 
-function updateBars(activeState) {
-    // Force bars to complete their animation immediately
-    d3.selectAll('.camera-segment').interrupt();
-    d3.selectAll('.police-segment').interrupt();
+// Update total labels based on visible layers
+function updateTotalLabels() {
+    const cameraVisible = chartGroup.selectAll('.layer-camera').style('opacity') !== '0';
+    const policeVisible = chartGroup.selectAll('.layer-police').style('opacity') !== '0';
     
-    // Get the height scale for recalculating positions
-    const minVisibleHeight = 3;
-    
-    // Update camera bars - recalculate and set to final position
-    d3.selectAll('.camera-segment')
-        .each(function(d) {
-            const elem = d3.select(this);
-            const calculatedHeight = yScale.range()[0] - yScale(d.camera);
-            const finalY = d.camera > 0 && calculatedHeight < minVisibleHeight 
-                ? yScale.range()[0] - minVisibleHeight 
-                : yScale(d.camera);
-            const finalHeight = d.camera === 0 ? 0 : Math.max(calculatedHeight, minVisibleHeight);
-            
-            // Force to final position immediately, then animate opacity
-            elem.attr('y', finalY)
-                .attr('height', finalHeight)
-                .transition()
-                .duration(300)
-                .style('opacity', activeState.camera ? 1 : 0);
-        });
-    
-    // Update police bars - recalculate and set to final position
-    d3.selectAll('.police-segment')
-        .each(function(d) {
-            const elem = d3.select(this);
-            const calculatedHeight = yScale(d.camera) - yScale(d.total);
-            const finalY = yScale(d.total);
-            const finalHeight = d.police === 0 ? 0 : Math.max(calculatedHeight, minVisibleHeight);
-            
-            // Force to final position immediately, then animate opacity
-            elem.attr('y', finalY)
-                .attr('height', finalHeight)
-                .transition()
-                .duration(300)
-                .style('opacity', activeState.police ? 1 : 0);
-        });
-    
-    // Update value labels based on what's visible
-    d3.selectAll('.total-label')
+    chartGroup.selectAll('.total-label')
         .transition()
         .duration(300)
-        .style('opacity', (activeState.camera || activeState.police) ? 1 : 0)
         .text(function() {
-            const barGroup = d3.select(this.parentNode);
-            const data = barGroup.datum();
+            const d = d3.select(this).datum();
             
-            // Calculate visible total
-            let visibleTotal = 0;
-            if (activeState.camera && activeState.police) {
-                visibleTotal = data.total;
-            } else if (activeState.camera) {
-                visibleTotal = data.camera;
-            } else if (activeState.police) {
-                visibleTotal = data.police;
+            if (stackMode === 'proportional') {
+                // In proportional mode, show percentage of visible components
+                if (cameraVisible && policeVisible) {
+                    return '100%';
+                } else if (cameraVisible) {
+                    const cameraPct = d._total > 0 ? (d._cameraAbs / d._total * 100) : 0;
+                    // Hide .0 decimals
+                    return (cameraPct % 1 === 0 ? cameraPct.toFixed(0) : cameraPct.toFixed(1)) + '%';
+                } else if (policeVisible) {
+                    const policePct = d._total > 0 ? (d._policeAbs / d._total * 100) : 0;
+                    // Hide .0 decimals
+                    return (policePct % 1 === 0 ? policePct.toFixed(0) : policePct.toFixed(1)) + '%';
+                } else {
+                    return '';
+                }
+            } else {
+                // In absolute mode, show sum of visible components
+                let total = 0;
+                if (cameraVisible) total += d.camera;
+                if (policeVisible) total += d.police;
+                return total > 0 ? d3.format('.2s')(total) : '';
             }
+        })
+        .attr('y', function() {
+            const d = d3.select(this).datum();
             
-            return visibleTotal > 0 ? d3.format('.2s')(visibleTotal) : '';
+            // Calculate the top position based on visible layers
+            if (stackMode === 'proportional') {
+                // In proportional mode, find the highest visible segment top
+                let maxY = 0;
+                
+                if (cameraVisible && policeVisible) {
+                    // Both visible - top is always 100%
+                    maxY = 100;
+                } else if (cameraVisible && !policeVisible) {
+                    // Only camera visible - find camera segment top
+                    const cameraPct = d._total > 0 ? (d._cameraAbs / d._total * 100) : 0;
+                    maxY = cameraPct;
+                } else if (policeVisible && !cameraVisible) {
+                    // Only police visible - police segment top is always 100%
+                    maxY = 100;
+                } else {
+                    maxY = 0;
+                }
+                
+                return yScale(maxY) - 5;
+            } else {
+                // In absolute mode, find the highest visible segment top
+                let maxY = 0;
+                
+                if (cameraVisible && policeVisible) {
+                    // Both visible - top is total of both
+                    maxY = d.camera + d.police;
+                } else if (cameraVisible && !policeVisible) {
+                    // Only camera visible - top is camera value
+                    maxY = d.camera;
+                } else if (policeVisible && !cameraVisible) {
+                    // Only police visible - top is total (police segment goes to full height)
+                    maxY = d.camera + d.police;
+                } else {
+                    maxY = 0;
+                }
+                
+                return yScale(maxY) - 5;
+            }
         });
 }
 

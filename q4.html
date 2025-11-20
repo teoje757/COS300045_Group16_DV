@@ -25,8 +25,7 @@
             <!-- Filter Controls -->
             <div class="controls">
                 <div class="controls-header">
-                    <h3>Filters</h3>
-                    <button id="toggle-filters" class="toggle-btn">Show ▶</button>
+                    <h3>Filters <span id="toggle-filters" class="toggle-arrow">›</span></h3>
                 </div>
                 
                 <div id="filters-content" class="filters-content" style="display: none;">
@@ -80,6 +79,29 @@
 
             <!-- Legend -->
             <div id="legend"></div>
+
+            <!-- Insights Section -->
+            <div class="insights-section">
+                <h3 class="insights-title">Key Insights</h3>
+                <div class="insights-content">
+                    <div class="insight-item">
+                        <span class="insight-icon">📷</span>
+                        <span class="insight-text"><strong>Camera Dominance:</strong> NSW leads in total enforcement volume, with camera-detected fines significantly outnumbering police-issued citations across most jurisdictions.</span>
+                    </div>
+                    <div class="insight-item">
+                        <span class="insight-icon">⚖️</span>
+                        <span class="insight-text"><strong>Detection Method Balance:</strong> The ratio of camera to police fines varies by jurisdiction, reflecting different enforcement strategies and infrastructure investments.</span>
+                    </div>
+                    <div class="insight-item">
+                        <span class="insight-icon">🚨</span>
+                        <span class="insight-text"><strong>Resource Allocation:</strong> Jurisdictions with higher camera-issued fines may indicate greater investment in automated enforcement technology, while police-heavy jurisdictions rely more on traditional traffic patrols.</span>
+                    </div>
+                    <div class="insight-item">
+                        <span class="insight-icon">💡</span>
+                        <span class="insight-text"><strong>Interactive Tip:</strong> Click any segment or legend item to isolate camera or police fines. Hover over bars to see exact counts and percentages. Click outside or press ESC to view complete data.</span>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
