@@ -98,41 +98,6 @@
             </div>
         </section>
 
-        <!-- Choropleth map + heatmap duo -->
-        <section class="map-panel" aria-labelledby="map-title">
-            <div class="map-header">
-                <div>
-                    <p class="panel-kicker">Spatial choropleth</p>
-                    <h2 id="map-title">Chloropleth snapshot of fines per jurisdiction</h2>
-                    <p class="panel-subtext">Drag the year slider to see camera rollouts propagate across the map.</p>
-                </div>
-                <div class="map-year-control">
-                    <label for="map-year-range">
-                        Year: <span id="map-year-label"></span>
-                    </label>
-                    <input type="range" id="map-year-range" min="2008" max="2024" step="1" value="2024">
-                </div>
-            </div>
-            <div class="map-wrapper">
-                <svg id="aus-map" role="img" aria-describedby="map-desc"></svg>
-                <p id="map-desc" class="sr-only">
-                    Choropleth map where each Australian jurisdiction is shaded by fines issued. Darker indicates
-                    higher magnitude. Slider controls the selected year.
-                </p>
-                <div id="map-tooltip" class="tooltip" role="status" aria-live="polite"></div>
-            </div>
-            <div class="map-callouts">
-                <article>
-                    <p class="label">Narrative cue</p>
-                    <p id="map-annotation">Map annotations appear here.</p>
-                </article>
-                <article>
-                    <p class="label">Legend</p>
-                    <div id="map-legend" class="legend-scale"></div>
-                </article>
-            </div>
-        </section>
-
         <!-- Heatmap panel follows magnitude rules: ordered axes, legend, annotations -->
         <section class="heatmap-section" aria-labelledby="heatmap-title">
             <div class="heatmap-header">

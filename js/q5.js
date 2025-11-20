@@ -3,18 +3,11 @@ const tooltip = d3.select("#heatmap-tooltip");
 const legendContainer = d3.select("#legend-scale");
 const annotationsEl = d3.select("#annotation-list");
 
-const mapSvg = d3.select("#aus-map");
-const mapTooltip = d3.select("#map-tooltip");
-const mapLegend = d3.select("#map-legend");
-const mapAnnotation = d3.select("#map-annotation");
-
 const startSelect = document.getElementById("start-year");
 const endSelect = document.getElementById("end-year");
 const focusSelect = document.getElementById("focus-jurisdiction");
 const deltaToggle = document.getElementById("delta-toggle");
 const resetBtn = document.getElementById("reset-btn");
-const mapYearSlider = document.getElementById("map-year-range");
-const mapYearLabel = document.getElementById("map-year-label");
 
 const margin = { top: 20, right: 20, bottom: 80, left: 120 };
 const width = 960;
@@ -23,7 +16,6 @@ const chartWidth = width - margin.left - margin.right;
 const chartHeight = height - margin.top - margin.bottom;
 
 svg.attr("viewBox", `0 0 ${width} ${height}`);
-mapSvg.attr("viewBox", "0 0 960 520");
 
 const chart = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
 const xAxisGroup = chart.append("g").attr("transform", `translate(0,${chartHeight})`);
@@ -53,9 +45,6 @@ const yScale = d3.scaleBand().padding(0.08);
 // Colour-blind-safe palettes per brief (Viridis for magnitude, PRGn for change)
 const colorScale = d3.scaleSequential(d3.interpolateViridis);
 const divergingScale = d3.scaleDiverging(d3.interpolatePRGn);
-const mapColorScale = d3.scaleSequential(d3.interpolateViridis);
-const mapProjection = d3.geoMercator();
-const mapPath = d3.geoPath(mapProjection);
 
 // Ordered categories (west → east) keep spatial reasoning consistent
 const jurisdictionOrder = ["WA", "NT", "SA", "QLD", "NSW", "ACT", "VIC", "TAS"];
@@ -64,184 +53,6 @@ let valueLookup = new Map();
 let years = [];
 let finesExtent = [0, 1];
 let deltaExtent = [1, -1];
-let mapYear = 2024;
-const AUS_GEOJSON = {
-    type: "FeatureCollection",
-    features: [
-        {
-            type: "Feature",
-            id: "WA",
-            properties: { name: "Western Australia" },
-            geometry: {
-                type: "Polygon",
-                coordinates: [
-                    [
-                        [112, -35],
-                        [113.5, -34.5],
-                        [115, -31.5],
-                        [116.5, -30.5],
-                        [119, -28.5],
-                        [121, -26],
-                        [123, -24],
-                        [124, -22],
-                        [124, -19],
-                        [122, -18],
-                        [120, -16],
-                        [118, -17.5],
-                        [117, -21],
-                        [115, -24],
-                        [113.5, -27],
-                        [112.5, -30],
-                        [112, -33],
-                        [112, -35]
-                    ]
-                ]
-            }
-        },
-        {
-            type: "Feature",
-            id: "NT",
-            properties: { name: "Northern Territory" },
-            geometry: {
-                type: "Polygon",
-                coordinates: [
-                    [
-                        [129, -26],
-                        [137, -26],
-                        [138, -23],
-                        [137.5, -18],
-                        [135, -14],
-                        [132, -12],
-                        [129, -13],
-                        [129, -26]
-                    ]
-                ]
-            }
-        },
-        {
-            type: "Feature",
-            id: "SA",
-            properties: { name: "South Australia" },
-            geometry: {
-                type: "Polygon",
-                coordinates: [
-                    [
-                        [129, -37.5],
-                        [140.5, -37.5],
-                        [140.5, -35],
-                        [138, -34],
-                        [137, -32],
-                        [135, -31],
-                        [133, -32],
-                        [131.5, -34],
-                        [129, -35],
-                        [129, -37.5]
-                    ]
-                ]
-            }
-        },
-        {
-            type: "Feature",
-            id: "QLD",
-            properties: { name: "Queensland" },
-            geometry: {
-                type: "Polygon",
-                coordinates: [
-                    [
-                        [138, -28.5],
-                        [141, -28.5],
-                        [146, -29],
-                        [152, -25],
-                        [153.5, -22],
-                        [152.5, -19],
-                        [150, -14],
-                        [147, -12],
-                        [143, -11],
-                        [141, -13],
-                        [139.5, -17],
-                        [138, -22],
-                        [138, -28.5]
-                    ]
-                ]
-            }
-        },
-        {
-            type: "Feature",
-            id: "NSW",
-            properties: { name: "New South Wales" },
-            geometry: {
-                type: "Polygon",
-                coordinates: [
-                    [
-                        [141, -37],
-                        [151, -37],
-                        [152.5, -34],
-                        [151.5, -31],
-                        [150, -29],
-                        [147, -29.2],
-                        [144, -33],
-                        [141, -34],
-                        [141, -37]
-                    ]
-                ]
-            }
-        },
-        {
-            type: "Feature",
-            id: "ACT",
-            properties: { name: "Australian Capital Territory" },
-            geometry: {
-                type: "Polygon",
-                coordinates: [
-                    [
-                        [148.7, -35.5],
-                        [149.3, -35.5],
-                        [149.3, -35],
-                        [148.7, -35],
-                        [148.7, -35.5]
-                    ]
-                ]
-            }
-        },
-        {
-            type: "Feature",
-            id: "VIC",
-            properties: { name: "Victoria" },
-            geometry: {
-                type: "Polygon",
-                coordinates: [
-                    [
-                        [141, -39],
-                        [149, -39],
-                        [150, -38],
-                        [147, -36],
-                        [144, -36.5],
-                        [142, -38],
-                        [141, -39]
-                    ]
-                ]
-            }
-        },
-        {
-            type: "Feature",
-            id: "TAS",
-            properties: { name: "Tasmania" },
-            geometry: {
-                type: "Polygon",
-                coordinates: [
-                    [
-                        [144, -44.5],
-                        [148, -44.5],
-                        [149, -42],
-                        [147, -41],
-                        [145, -42],
-                        [144, -44.5]
-                    ]
-                ]
-            }
-        }
-    ]
-};
 
 const formatter = d3.format(",d");
 const deltaFormatter = d3.format("+,.0f");
@@ -256,10 +67,6 @@ function populateControls() {
 
     startSelect.value = String(years[0]);
     endSelect.value = String(years[years.length - 1]);
-    mapYearSlider.min = years[0];
-    mapYearSlider.max = years[years.length - 1];
-    mapYearSlider.value = mapYear = years[years.length - 1];
-    mapYearLabel.textContent = mapYear;
 
     focusSelect.innerHTML =
         '<option value="ALL">All states</option>' +
@@ -362,78 +169,6 @@ function updateAnnotations(filtered) {
     });
 }
 
-function getYearData(year) {
-    return dataset.filter((d) => d.year === year).reduce((map, curr) => {
-        map.set(curr.jurisdiction, curr.fines);
-        return map;
-    }, new Map());
-}
-
-function drawMap() {
-    const mapFeatures = AUS_GEOJSON.features;
-    mapProjection.fitSize([900, 450], AUS_GEOJSON);
-    mapSvg
-        .selectAll("path.state")
-        .data(mapFeatures, (d) => d.id)
-        .join("path")
-        .attr("class", "state")
-        .attr("d", mapPath)
-        .attr("stroke", "#fff")
-        .attr("stroke-width", 1.2)
-        .on("mousemove", (event, d) => {
-            const yearData = getYearData(mapYear);
-            const value = yearData.get(d.id);
-            mapTooltip
-                .style("opacity", 1)
-                .style("left", `${event.pageX + 15}px`)
-                .style("top", `${event.pageY - 10}px`)
-                .html(
-                    `<strong>${d.properties.STATE_NAME || d.properties.name}</strong><br>${mapYear}: ${
-                        value !== undefined ? formatter(value) : "No data"
-                    } fines`
-                );
-        })
-        .on("mouseleave", () => mapTooltip.style("opacity", 0));
-}
-
-function updateMap() {
-    const mapFeatures = AUS_GEOJSON.features;
-    const yearData = getYearData(mapYear);
-    mapYearLabel.textContent = mapYear;
-    mapColorScale.domain(finesExtent);
-
-    mapSvg
-        .selectAll("path.state")
-        .transition()
-        .duration(600)
-        .attr("fill", (d) => {
-            const value = yearData.get(d.id);
-            return value !== undefined ? mapColorScale(value) : "#dfe6ef";
-        });
-
-    const topJurisdiction = jurisdictionOrder
-        .map((code) => ({ code, value: yearData.get(code) }))
-        .filter((d) => d.value !== undefined)
-        .sort((a, b) => b.value - a.value)[0];
-
-    if (topJurisdiction) {
-        mapAnnotation.textContent = `${topJurisdiction.code} holds the lead in ${mapYear} with ${formatter(
-            topJurisdiction.value
-        )} fines (camera surge phase).`;
-    } else {
-        mapAnnotation.textContent = "No data for selected year.";
-    }
-
-    updateMapLegend();
-}
-
-function updateMapLegend() {
-    mapLegend.html("");
-    mapLegend.append("span").text(formatter(finesExtent[0]));
-    mapLegend.append("div").attr("class", "map-legend-bar");
-    mapLegend.append("span").text(formatter(finesExtent[1]));
-}
-
 function updateChart() {
     const filtered = filterData();
     updateScales(filtered);
@@ -534,10 +269,6 @@ function attachEvents() {
         el.addEventListener("change", () => updateChart())
     );
     deltaToggle.addEventListener("change", () => updateChart());
-    mapYearSlider.addEventListener("input", (event) => {
-        mapYear = Number(event.target.value);
-        updateMap();
-    });
     resetBtn.addEventListener("click", () => {
         startSelect.value = String(years[0]);
         endSelect.value = String(years[years.length - 1]);
@@ -565,17 +296,12 @@ d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", (d) => ({
 
         colorScale.domain(finesExtent);
         divergingScale.domain([deltaExtent[0], 0, deltaExtent[1]]);
-        mapColorScale.domain(finesExtent);
-
         populateControls();
         attachEvents();
-        drawMap();
-        updateMap();
         updateChart();
     })
     .catch((error) => {
         console.error("Failed to load Q5 CSV", error);
         annotationsEl.html("<li>Unable to load data. Please check the CSV path.</li>");
-        mapAnnotation.textContent = "Map unavailable — CSV failed to load.";
     });
 
