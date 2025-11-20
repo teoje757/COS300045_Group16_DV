@@ -3,11 +3,18 @@ const tooltip = d3.select("#heatmap-tooltip");
 const legendContainer = d3.select("#legend-scale");
 const annotationsEl = d3.select("#annotation-list");
 
+const mapSvg = d3.select("#aus-map");
+const mapTooltip = d3.select("#map-tooltip");
+const mapLegend = d3.select("#map-legend");
+const mapAnnotation = d3.select("#map-annotation");
+
 const startSelect = document.getElementById("start-year");
 const endSelect = document.getElementById("end-year");
 const focusSelect = document.getElementById("focus-jurisdiction");
 const deltaToggle = document.getElementById("delta-toggle");
 const resetBtn = document.getElementById("reset-btn");
+const mapYearSlider = document.getElementById("map-year-range");
+const mapYearLabel = document.getElementById("map-year-label");
 
 const margin = { top: 20, right: 20, bottom: 80, left: 120 };
 const width = 960;
@@ -16,6 +23,7 @@ const chartWidth = width - margin.left - margin.right;
 const chartHeight = height - margin.top - margin.bottom;
 
 svg.attr("viewBox", `0 0 ${width} ${height}`);
+mapSvg.attr("viewBox", "0 0 960 520");
 
 const chart = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
 const xAxisGroup = chart.append("g").attr("transform", `translate(0,${chartHeight})`);
@@ -45,6 +53,9 @@ const yScale = d3.scaleBand().padding(0.08);
 // Colour-blind-safe palettes per brief (Viridis for magnitude, PRGn for change)
 const colorScale = d3.scaleSequential(d3.interpolateViridis);
 const divergingScale = d3.scaleDiverging(d3.interpolatePRGn);
+const mapColorScale = d3.scaleSequential(d3.interpolateViridis);
+const mapProjection = d3.geoMercator().center([134, -28]).scale(1100).translate([480, 320]);
+const mapPath = d3.geoPath(mapProjection);
 
 // Ordered categories (west → east) keep spatial reasoning consistent
 const jurisdictionOrder = ["WA", "NT", "SA", "QLD", "NSW", "ACT", "VIC", "TAS"];
@@ -53,6 +64,149 @@ let valueLookup = new Map();
 let years = [];
 let finesExtent = [0, 1];
 let deltaExtent = [1, -1];
+let mapYear = 2024;
+
+const AUS_TILE_FEATURES = {
+    type: "FeatureCollection",
+    features: [
+        {
+            type: "Feature",
+            id: "WA",
+            properties: { name: "Western Australia" },
+            geometry: {
+                type: "Polygon",
+                coordinates: [
+                    [
+                        [112, -35],
+                        [129, -35],
+                        [129, -13],
+                        [112, -13],
+                        [112, -35]
+                    ]
+                ]
+            }
+        },
+        {
+            type: "Feature",
+            id: "NT",
+            properties: { name: "Northern Territory" },
+            geometry: {
+                type: "Polygon",
+                coordinates: [
+                    [
+                        [129, -26],
+                        [138, -26],
+                        [138, -12],
+                        [129, -12],
+                        [129, -26]
+                    ]
+                ]
+            }
+        },
+        {
+            type: "Feature",
+            id: "SA",
+            properties: { name: "South Australia" },
+            geometry: {
+                type: "Polygon",
+                coordinates: [
+                    [
+                        [129, -38],
+                        [141, -38],
+                        [141, -26],
+                        [129, -26],
+                        [129, -38]
+                    ]
+                ]
+            }
+        },
+        {
+            type: "Feature",
+            id: "QLD",
+            properties: { name: "Queensland" },
+            geometry: {
+                type: "Polygon",
+                coordinates: [
+                    [
+                        [138, -29],
+                        [154, -29],
+                        [154, -10],
+                        [138, -10],
+                        [138, -29]
+                    ]
+                ]
+            }
+        },
+        {
+            type: "Feature",
+            id: "NSW",
+            properties: { name: "New South Wales" },
+            geometry: {
+                type: "Polygon",
+                coordinates: [
+                    [
+                        [141, -37],
+                        [153, -37],
+                        [153, -28],
+                        [141, -28],
+                        [141, -37]
+                    ]
+                ]
+            }
+        },
+        {
+            type: "Feature",
+            id: "ACT",
+            properties: { name: "Australian Capital Territory" },
+            geometry: {
+                type: "Polygon",
+                coordinates: [
+                    [
+                        [148.5, -35.8],
+                        [149.5, -35.8],
+                        [149.5, -34.8],
+                        [148.5, -34.8],
+                        [148.5, -35.8]
+                    ]
+                ]
+            }
+        },
+        {
+            type: "Feature",
+            id: "VIC",
+            properties: { name: "Victoria" },
+            geometry: {
+                type: "Polygon",
+                coordinates: [
+                    [
+                        [141, -39],
+                        [150, -39],
+                        [150, -35],
+                        [141, -35],
+                        [141, -39]
+                    ]
+                ]
+            }
+        },
+        {
+            type: "Feature",
+            id: "TAS",
+            properties: { name: "Tasmania" },
+            geometry: {
+                type: "Polygon",
+                coordinates: [
+                    [
+                        [144, -44],
+                        [149, -44],
+                        [149, -40],
+                        [144, -40],
+                        [144, -44]
+                    ]
+                ]
+            }
+        }
+    ]
+};
 
 const formatter = d3.format(",d");
 const deltaFormatter = d3.format("+,.0f");
@@ -67,6 +221,10 @@ function populateControls() {
 
     startSelect.value = String(years[0]);
     endSelect.value = String(years[years.length - 1]);
+    mapYearSlider.min = years[0];
+    mapYearSlider.max = years[years.length - 1];
+    mapYearSlider.value = mapYear = years[years.length - 1];
+    mapYearLabel.textContent = mapYear;
 
     focusSelect.innerHTML =
         '<option value="ALL">All states</option>' +
@@ -169,6 +327,75 @@ function updateAnnotations(filtered) {
     });
 }
 
+function getYearData(year) {
+    return dataset.filter((d) => d.year === year).reduce((map, curr) => {
+        map.set(curr.jurisdiction, curr.fines);
+        return map;
+    }, new Map());
+}
+
+function drawMap() {
+    mapSvg
+        .selectAll("path.state")
+        .data(AUS_TILE_FEATURES.features, (d) => d.id)
+        .join("path")
+        .attr("class", "state")
+        .attr("d", mapPath)
+        .attr("stroke", "#fff")
+        .attr("stroke-width", 1.2)
+        .on("mousemove", (event, d) => {
+            const yearData = getYearData(mapYear);
+            const value = yearData.get(d.id);
+            mapTooltip
+                .style("opacity", 1)
+                .style("left", `${event.pageX + 15}px`)
+                .style("top", `${event.pageY - 10}px`)
+                .html(
+                    `<strong>${d.properties.name}</strong><br>${mapYear}: ${
+                        value !== undefined ? formatter(value) : "No data"
+                    } fines`
+                );
+        })
+        .on("mouseleave", () => mapTooltip.style("opacity", 0));
+}
+
+function updateMap() {
+    const yearData = getYearData(mapYear);
+    mapYearLabel.textContent = mapYear;
+    mapColorScale.domain(finesExtent);
+
+    mapSvg
+        .selectAll("path.state")
+        .transition()
+        .duration(600)
+        .attr("fill", (d) => {
+            const value = yearData.get(d.id);
+            return value !== undefined ? mapColorScale(value) : "#dfe6ef";
+        });
+
+    const topJurisdiction = jurisdictionOrder
+        .map((code) => ({ code, value: yearData.get(code) }))
+        .filter((d) => d.value !== undefined)
+        .sort((a, b) => b.value - a.value)[0];
+
+    if (topJurisdiction) {
+        mapAnnotation.textContent = `${topJurisdiction.code} holds the lead in ${mapYear} with ${formatter(
+            topJurisdiction.value
+        )} fines (camera surge phase).`;
+    } else {
+        mapAnnotation.textContent = "No data for selected year.";
+    }
+
+    updateMapLegend();
+}
+
+function updateMapLegend() {
+    mapLegend.html("");
+    mapLegend.append("span").text("Low");
+    mapLegend.append("div").attr("class", "map-legend-bar");
+    mapLegend.append("span").text("High");
+}
+
 function updateChart() {
     const filtered = filterData();
     updateScales(filtered);
@@ -269,6 +496,10 @@ function attachEvents() {
         el.addEventListener("change", () => updateChart())
     );
     deltaToggle.addEventListener("change", () => updateChart());
+    mapYearSlider.addEventListener("input", (event) => {
+        mapYear = Number(event.target.value);
+        updateMap();
+    });
     resetBtn.addEventListener("click", () => {
         startSelect.value = String(years[0]);
         endSelect.value = String(years[years.length - 1]);
@@ -295,9 +526,12 @@ d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", (d) => ({
 
     colorScale.domain(finesExtent);
     divergingScale.domain([deltaExtent[0], 0, deltaExtent[1]]);
+    mapColorScale.domain(finesExtent);
 
     populateControls();
     attachEvents();
+    drawMap();
+    updateMap();
     updateChart();
 }).catch((error) => {
     console.error("Failed to load CSV", error);
