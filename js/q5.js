@@ -54,7 +54,7 @@ const yScale = d3.scaleBand().padding(0.08);
 const colorScale = d3.scaleSequential(d3.interpolateViridis);
 const divergingScale = d3.scaleDiverging(d3.interpolatePRGn);
 const mapColorScale = d3.scaleSequential(d3.interpolateViridis);
-const mapProjection = d3.geoMercator().center([134, -28]).scale(1100).translate([480, 320]);
+const mapProjection = d3.geoMercator();
 const mapPath = d3.geoPath(mapProjection);
 
 // Ordered categories (west → east) keep spatial reasoning consistent
@@ -335,6 +335,7 @@ function getYearData(year) {
 }
 
 function drawMap() {
+    mapProjection.fitSize([900, 450], AUS_TILE_FEATURES);
     mapSvg
         .selectAll("path.state")
         .data(AUS_TILE_FEATURES.features, (d) => d.id)
