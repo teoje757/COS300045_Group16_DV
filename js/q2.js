@@ -160,6 +160,9 @@ async function createChart() {
         // Group data by jurisdiction
         const nested = d3.group(data, d => d.jurisdiction);
 
+        // Active jurisdictions state (all active by default)
+        let activeJurisdictions = new Set(jurisdictions);
+
         // Draw plain multi-series lines (no staggered animation)
         const linePaths = svg.selectAll('.line-path')
             .data(Array.from(nested))
@@ -172,7 +175,7 @@ async function createChart() {
             .style('stroke-linejoin', 'round')
             .style('stroke-linecap', 'round')
             .style('fill', 'none')
-            .style('opacity', 0.9);
+            .style('opacity', d => activeJurisdictions.has(d[0]) ? 0.9 : 0.08);
 
         // Add point markers for each data point (hidden by default, shown on hover)
         const pointsGroup = svg.append('g').attr('class', 'points-group');
@@ -188,7 +191,33 @@ async function createChart() {
                 .style('opacity', 0.0);
         });
 
-        // Note: filter checkboxes were removed for Q2 — chart shows all jurisdictions by default.
+        // Create checkbox controls inside filters content (jurisdiction-grid)
+        const controlsContainer = d3.select('#jurisdiction-grid');
+        controlsContainer.selectAll('*').remove();
+        jurisdictions.forEach(j => {
+            const label = controlsContainer.append('label')
+                .attr('class', 'jurisdiction-checkbox');
+
+            label.append('input')
+                .attr('type', 'checkbox')
+                .attr('data-jurisdiction', j)
+                .attr('id', `check-${j}`)
+                .property('checked', true)
+                .on('change', function(e) {
+                    if (this.checked) activeJurisdictions.add(j); else activeJurisdictions.delete(j);
+                    updateVisibility();
+                    // update legend appearance
+                    d3.selectAll('#legend .legend-item').classed('inactive', d => !activeJurisdictions.has(d));
+                });
+
+            label.append('span')
+                .attr('class', `checkbox-custom`)
+                .style('color', colorScale(j));
+
+            label.append('span')
+                .attr('class', 'jurisdiction-label')
+                .text(j);
+        });
 
         // Create HTML legend (matches q3/q4) and sync with checkboxes
         const legendContainer = d3.select('#legend');
@@ -197,7 +226,18 @@ async function createChart() {
         const legendItems = legendContainer.selectAll('.legend-item')
             .data(jurisdictions)
             .join('div')
-            .attr('class', 'legend-item');
+            .attr('class', 'legend-item')
+            .on('click', function(event, j) {
+                if (activeJurisdictions.has(j)) activeJurisdictions.delete(j);
+                else activeJurisdictions.add(j);
+
+                // sync checkbox
+                const cb = document.getElementById(`check-${j}`);
+                if (cb) cb.checked = activeJurisdictions.has(j);
+
+                updateVisibility();
+                legendContainer.selectAll('.legend-item').classed('inactive', d => !activeJurisdictions.has(d));
+            });
 
         legendItems.append('div')
             .attr('class', 'legend-color')
@@ -207,12 +247,34 @@ async function createChart() {
             .attr('class', 'legend-label')
             .text(d => d);
 
-        // legend is static for Q2 (no filtering)
+        // initialize legend appearance
+        legendContainer.selectAll('.legend-item').classed('inactive', d => !activeJurisdictions.has(d));
 
         /**
          * Update line visibility based on active jurisdictions
          */
-        // No filter update function required for Q2 — all lines remain visible.
+        function updateVisibility() {
+            svg.selectAll('.line')
+                .transition()
+                .duration(300)
+                .style('opacity', d => activeJurisdictions.has(d[0]) ? 0.9 : 0.08);
+        }
+        // Wire up the controls header toggle (show/hide filters) for q2
+        const controlsHeader = document.getElementById('q2-controls-header');
+        const filtersContent = document.getElementById('filters-content');
+        const toggleArrow = document.getElementById('toggle-filters');
+        if (controlsHeader && filtersContent && toggleArrow) {
+            controlsHeader.addEventListener('click', () => {
+                const isOpen = filtersContent.style.display === 'block';
+                if (isOpen) {
+                    filtersContent.style.display = 'none';
+                    toggleArrow.classList.remove('open');
+                } else {
+                    filtersContent.style.display = 'block';
+                    toggleArrow.classList.add('open');
+                }
+            });
+        }
 
         // Create tooltip
         const tooltip = d3.select('body').append('div')

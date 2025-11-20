@@ -19,7 +19,21 @@
                 <p class="chart-subtitle">Interactive exploration with hover highlighting and filtering capabilities</p>
             </div>
 
-            <!-- Filters removed for Q2 (static multi-series view) -->
+            <div class="controls">
+                <div class="controls-header" id="q2-controls-header">
+                    <h3>Filters <span id="toggle-filters" class="toggle-arrow">›</span></h3>
+                </div>
+                <div id="filters-content" class="filters-content" style="display: none;">
+                    <div class="filter-section">
+                        <div class="filter-header">
+                            <label>Jurisdictions</label>
+                        </div>
+                        <div class="jurisdiction-grid" id="jurisdiction-grid">
+                            <!-- checkboxes are created by js -->
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             <div id="chart"></div>
             <div id="legend"></div>
