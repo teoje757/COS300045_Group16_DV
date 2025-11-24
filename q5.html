@@ -1,32 +1,52 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link href='https://fonts.googleapis.com/css?family=Roboto' rel='stylesheet' type='text/css'>
     <meta charset="utf-8">
     <title>Australia Heatmap</title>
+
+    <!-- Roboto Font -->
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,700" rel="stylesheet">
+
+    <!-- D3 Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
+
+    <!-- Styles -->
     <link rel="stylesheet" href="css/q5-style.css">
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
 </head>
+
 <body>
     <div id="container">
         <h1>Australia Heatmap by State and Year</h1>
-        <p>Interactive visualization showing mobile phone enforcement patterns by state over time. Use the slider or play button to explore different years.</p>
-        
+        <p>
+            Interactive visualization showing mobile phone enforcement patterns by state over time.
+            Use the slider or play button to explore different years.
+        </p>
+
         <div id="controls">
             <button id="playBtn">Play</button>
             <button id="resetBtn">Reset</button>
-            <br><br>
-            <div id="yearDisplay">2014</div>
-            <input type="range" id="yearSlider" min="2014" max="2024" value="2014" step="1">
+
+            <div id="yearDisplay">2008</div>
+
+            <input type="range"
+                   id="yearSlider"
+                   min="2008"
+                   max="2024"
+                   value="2008"
+                   step="1">
         </div>
-        
+
         <div id="loading">Loading data...</div>
+
         <div id="svganchor"></div>
-        <div class="tooltip" id="tooltip"></div>
-        <br>
-        <p>Source: Australian Bureau of Statistics | Data shows mobile phone enforcement patterns by state from 2014-2024</p>
+
+        <div id="tooltip" class="tooltip"></div>
+
+        <p class="source-note">
+            Source: Australian Bureau of Statistics | Data shows mobile phone enforcement patterns by state (2014–2024)
+        </p>
     </div>
 
-    <script type="text/javascript" src="js/q5.js"></script>
+    <script src="js/q5.js"></script>
 </body>
 </html>

@@ -1,5 +1,5 @@
 // Global variables
-let currentYear = 2014;
+let currentYear = 2008;
 let isPlaying = false;
 let playInterval;
 let colorScale;
@@ -238,7 +238,7 @@ d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", function(error, csvData)
                 if (currentYear < 2024) {
                     updateMap(currentYear + 1);
                 } else {
-                    updateMap(2014);
+                    updateMap(2008);
                 }
             }, 1000);
         }
@@ -259,7 +259,7 @@ d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", function(error, csvData)
 
         document.getElementById("resetBtn").addEventListener("click", function() {
             stopPlay();
-            updateMap(2014);
+            updateMap(2008);
         });
     });
 });
