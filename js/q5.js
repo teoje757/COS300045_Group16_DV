@@ -11,8 +11,9 @@ let svg;
 let dataMap = {};
 
 // Dimensions
-const w = 850;
-const h = 700;
+const w = window.innerWidth;
+const h = window.innerHeight - 150; // leave space for controls
+
 
 // Projection
 const projection = d3.geo.mercator()
@@ -69,9 +70,9 @@ d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", function (error, csvData
 
     // Create SVG
     svg = d3.select("#svganchor")
-        .append("svg")
-        .attr("width", w)
-        .attr("height", h);
+    .append("svg")
+    .attr("width", "100%")
+    .attr("height", "90vh");
 
     // Lookup helper
     function getValue(stateCode, year) {
