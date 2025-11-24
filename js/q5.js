@@ -97,7 +97,10 @@ d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", function(error, csvData)
             .transition()
             .duration(300)
             .attr("fill", function(d) {
-                const stateCode = d.properties.STATE_CODE || d.properties.STATE_NAME;
+                const stateCode = d.properties.STATE_CODE || 
+                                 d.properties.STE_CODE16 || 
+                                 d.properties.STATE_NAME || 
+                                 d.properties.STE_NAME16;
                 const value = getValue(stateCode, year);
                 return colorScale(value);
             });
@@ -114,6 +117,11 @@ d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", function(error, csvData)
         console.log("GeoJSON loaded:", json.features.length, "features");
         console.log("Sample feature properties:", json.features[0].properties);
         
+        // Log all state codes to see what we're working with
+        json.features.forEach(f => {
+            console.log("GeoJSON state:", f.properties.STATE_CODE, f.properties.STATE_NAME);
+        });
+        
         document.getElementById("loading").style.display = "none";
 
         // Draw states
@@ -124,14 +132,21 @@ d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", function(error, csvData)
             .attr("class", "state-path")
             .attr("d", path)
             .attr("fill", function(d) {
-                const stateCode = d.properties.STATE_CODE || d.properties.STATE_NAME;
+                // Try multiple property names to find the state code
+                const stateCode = d.properties.STATE_CODE || 
+                                 d.properties.STE_CODE16 || 
+                                 d.properties.STATE_NAME || 
+                                 d.properties.STE_NAME16;
                 const value = getValue(stateCode, currentYear);
-                console.log("State:", stateCode, "Value:", value);
+                console.log("State:", stateCode, "Year:", currentYear, "Value:", value, "Color:", colorScale(value));
                 return colorScale(value);
             })
             .on("mouseover", function(d) {
-                const stateCode = d.properties.STATE_CODE || d.properties.STATE_NAME;
-                const stateName = d.properties.STATE_NAME;
+                const stateCode = d.properties.STATE_CODE || 
+                                 d.properties.STE_CODE16 || 
+                                 d.properties.STATE_NAME || 
+                                 d.properties.STE_NAME16;
+                const stateName = d.properties.STATE_NAME || d.properties.STE_NAME16 || stateCode;
                 const value = getValue(stateCode, currentYear);
                 
                 tooltip.style("opacity", 1)
@@ -145,25 +160,26 @@ d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", function(error, csvData)
                 tooltip.style("opacity", 0);
             });
 
-        // State labels
+        // State labels - positioned at centroids
         svg.selectAll(".state-label")
             .data(json.features)
             .enter()
             .append("text")
             .attr("class", "state-label")
-            .attr("fill", "white")
-            .attr("stroke", "black")
-            .attr("stroke-width", "0.5px")
+            .attr("fill", "#333")
+            .attr("font-weight", "bold")
+            .attr("font-size", "14px")
+            .attr("text-anchor", "middle")
+            .attr("dy", ".35em")
+            .style("pointer-events", "none")
             .attr("transform", function(d) {
                 return "translate(" + path.centroid(d) + ")";
             })
-            .attr("text-anchor", "middle")
-            .attr("dy", ".35em")
-            .attr("font-size", "12px")
-            .attr("font-weight", "bold")
-            .style("pointer-events", "none")
             .text(function(d) {
-                return d.properties.STATE_CODE || d.properties.STATE_NAME;
+                return d.properties.STATE_CODE || 
+                       d.properties.STE_CODE16 || 
+                       d.properties.STATE_NAME || 
+                       d.properties.STE_NAME16;
             });
 
         // Add legend
