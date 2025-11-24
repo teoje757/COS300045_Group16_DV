@@ -3,23 +3,26 @@
 ================================ */
 body {
     margin: 0;
-    background-color: #e9e6f7; /* softer lavender */
-    font-family: 'Roboto', sans-serif;
-    font-weight: 300;
+    background-color: lavender;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
 }
+
 
 /* ================================
    Container
 ================================ */
 #container {
-    width: 900px;
-    max-width: 95%;
-    margin: 50px auto;
-    padding: 40px 50px;
-    background-color: white;
-    border-radius: 10px;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+    width: 100vw;
+    height: 100vh;
+    margin: 0;
+    padding: 20px;
+    box-sizing: border-box;
+    background: white;
+    overflow: hidden;
 }
+
 
 /* ================================
    Typography
