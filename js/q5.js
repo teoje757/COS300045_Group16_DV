@@ -4,6 +4,7 @@ let isPlaying = false;
 let playInterval;
 let colorScale;
 let svg;
+let dataMap = {};
 
 // Dimensions
 const w = 850;
@@ -22,22 +23,50 @@ const path = d3.geo.path()
 // Tooltip
 const tooltip = d3.select("#tooltip");
 
+// State code mapping (in case GeoJSON uses different codes)
+const stateCodeMap = {
+    'ACT': 'ACT',
+    'NSW': 'NSW', 
+    'NT': 'NT',
+    'QLD': 'QLD',
+    'SA': 'SA',
+    'TAS': 'TAS',
+    'VIC': 'VIC',
+    'WA': 'WA'
+};
+
 // Load CSV data
 d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", function(error, csvData) {
     if (error) {
         console.error("Error loading CSV:", error);
+        document.getElementById("loading").innerHTML = "Error loading data. Please check the CSV file path.";
         return;
     }
 
-    // Parse data
-    const data = csvData.map(d => ({
-        year: +d.year,
-        state: d.state,
-        value: +d.value
-    }));
+    console.log("CSV loaded successfully:", csvData.length, "rows");
+
+    // Parse data and create a map for quick lookup
+    csvData.forEach(d => {
+        const year = +d.year;
+        const state = d.state.trim();
+        const value = +d.value;
+        
+        if (!dataMap[year]) {
+            dataMap[year] = {};
+        }
+        dataMap[year][state] = value;
+    });
+
+    console.log("Data map created:", dataMap);
+
+    // Get all values for color scale
+    const allValues = csvData.map(d => +d.value);
+    const maxValue = d3.max(allValues);
+    const minValue = d3.min(allValues);
+    
+    console.log("Value range:", minValue, "to", maxValue);
 
     // Create color scale
-    const maxValue = d3.max(data, d => d.value);
     colorScale = d3.scale.linear()
         .domain([0, maxValue])
         .range(['#ffffcc', '#800026'])
@@ -51,8 +80,10 @@ d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", function(error, csvData)
 
     // Function to get value for state and year
     function getValue(state, year) {
-        const record = data.find(d => d.state === state && d.year === year);
-        return record ? record.value : 0;
+        if (dataMap[year] && dataMap[year][state] !== undefined) {
+            return dataMap[year][state];
+        }
+        return 0;
     }
 
     // Function to update map colors
@@ -65,15 +96,25 @@ d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", function(error, csvData)
             .transition()
             .duration(300)
             .attr("fill", function(d) {
-                const state = d.properties.STATE_CODE;
-                const value = getValue(state, year);
+                const stateCode = d.properties.STATE_CODE || d.properties.STATE_NAME;
+                const value = getValue(stateCode, year);
                 return colorScale(value);
             });
     }
 
     // Load GeoJSON
-    d3.json("https://raw.githubusercontent.com/tonywr71/GeoJson-Data/master/australian-states.json", function(json) {
+    d3.json("https://raw.githubusercontent.com/tonywr71/GeoJson-Data/master/australian-states.json", function(geoError, json) {
+        if (geoError) {
+            console.error("Error loading GeoJSON:", geoError);
+            document.getElementById("loading").innerHTML = "Error loading map data.";
+            return;
+        }
+
+        console.log("GeoJSON loaded:", json.features.length, "features");
+        console.log("Sample feature properties:", json.features[0].properties);
         
+        document.getElementById("loading").style.display = "none";
+
         // Draw states
         svg.selectAll("path")
             .data(json.features)
@@ -82,14 +123,15 @@ d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", function(error, csvData)
             .attr("class", "state-path")
             .attr("d", path)
             .attr("fill", function(d) {
-                const state = d.properties.STATE_CODE;
-                const value = getValue(state, currentYear);
+                const stateCode = d.properties.STATE_CODE || d.properties.STATE_NAME;
+                const value = getValue(stateCode, currentYear);
+                console.log("State:", stateCode, "Value:", value);
                 return colorScale(value);
             })
             .on("mouseover", function(d) {
-                const state = d.properties.STATE_CODE;
+                const stateCode = d.properties.STATE_CODE || d.properties.STATE_NAME;
                 const stateName = d.properties.STATE_NAME;
-                const value = getValue(state, currentYear);
+                const value = getValue(stateCode, currentYear);
                 
                 tooltip.style("opacity", 1)
                     .html(`<strong>${stateName}</strong><br>Year: ${currentYear}<br>Value: ${value.toLocaleString()}`);
@@ -120,7 +162,7 @@ d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", function(error, csvData)
             .attr("font-weight", "bold")
             .style("pointer-events", "none")
             .text(function(d) {
-                return d.properties.STATE_CODE;
+                return d.properties.STATE_CODE || d.properties.STATE_NAME;
             });
 
         // Add legend
@@ -155,50 +197,52 @@ d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", function(error, csvData)
         legend.append("rect")
             .attr("width", legendWidth)
             .attr("height", legendHeight)
-            .style("fill", "url(#legend-gradient)");
+            .style("fill", "url(#legend-gradient)")
+            .style("stroke", "#333")
+            .style("stroke-width", "1px");
 
         legend.append("g")
             .attr("transform", `translate(0, ${legendHeight})`)
             .call(legendAxis);
-    });
 
-    // Slider control
-    document.getElementById("yearSlider").addEventListener("input", function() {
-        if (isPlaying) {
-            stopPlay();
-        }
-        updateMap(parseInt(this.value));
-    });
-
-    // Play functionality
-    function startPlay() {
-        isPlaying = true;
-        document.getElementById("playBtn").textContent = "Pause";
-        playInterval = setInterval(() => {
-            if (currentYear < 2024) {
-                updateMap(currentYear + 1);
-            } else {
-                updateMap(2014);
+        // Slider control
+        document.getElementById("yearSlider").addEventListener("input", function() {
+            if (isPlaying) {
+                stopPlay();
             }
-        }, 1000);
-    }
+            updateMap(parseInt(this.value));
+        });
 
-    function stopPlay() {
-        isPlaying = false;
-        document.getElementById("playBtn").textContent = "Play";
-        clearInterval(playInterval);
-    }
-
-    document.getElementById("playBtn").addEventListener("click", function() {
-        if (isPlaying) {
-            stopPlay();
-        } else {
-            startPlay();
+        // Play functionality
+        function startPlay() {
+            isPlaying = true;
+            document.getElementById("playBtn").textContent = "Pause";
+            playInterval = setInterval(() => {
+                if (currentYear < 2024) {
+                    updateMap(currentYear + 1);
+                } else {
+                    updateMap(2014);
+                }
+            }, 1000);
         }
-    });
 
-    document.getElementById("resetBtn").addEventListener("click", function() {
-        stopPlay();
-        updateMap(2014);
+        function stopPlay() {
+            isPlaying = false;
+            document.getElementById("playBtn").textContent = "Play";
+            clearInterval(playInterval);
+        }
+
+        document.getElementById("playBtn").addEventListener("click", function() {
+            if (isPlaying) {
+                stopPlay();
+            } else {
+                startPlay();
+            }
+        });
+
+        document.getElementById("resetBtn").addEventListener("click", function() {
+            stopPlay();
+            updateMap(2014);
+        });
     });
 });
