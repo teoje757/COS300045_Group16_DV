@@ -75,6 +75,7 @@ const jurisdictionMeta = {
     TAS: { name: "Tasmania", lat: -42.88, lng: 147.33 }
 };
 
+// Updated state name mapping with better coverage
 const stateNameMap = {
     WA: "Western Australia",
     NT: "Northern Territory",
@@ -86,9 +87,25 @@ const stateNameMap = {
     TAS: "Tasmania"
 };
 
+// Function to normalize state names from different GeoJSON sources
+function normalizeStateName(name) {
+    const nameMap = {
+        "Western Australia": "WA",
+        "Northern Territory": "NT",
+        "South Australia": "SA",
+        "Queensland": "QLD",
+        "New South Wales": "NSW",
+        "Australian Capital Territory": "ACT",
+        "Victoria": "VIC",
+        "Tasmania": "TAS"
+    };
+    return nameMap[name] || name;
+}
+
 const geoNameToCode = Object.fromEntries(Object.entries(stateNameMap).map(([code, name]) => [name, code]));
-const geoJsonUrl =
-    "https://raw.githubusercontent.com/rowanhogan/australian-states/master/states.geojson";
+
+// Use a reliable GeoJSON source
+const geoJsonUrl = "https://raw.githubusercontent.com/tonywr71/GeoJson-Data/master/australian-states.json";
 
 function populateSelect(select, options) {
     select.innerHTML = options.map((opt) => `<option value="${opt}">${opt}</option>`).join("");
@@ -195,203 +212,6 @@ function updateAnnotations(filtered) {
         dataMap[year][state] = value;
     });
 
-    const allValues = csvData.map(d => +d.FINES);
-    const maxValue = d3.max(allValues);
-
-    // Color scale
-    colorScale = d3.scale.linear()
-        .domain([0, maxValue])
-        .range(["#ffffcc", "#800026"])
-        .interpolate(d3.interpolateHcl);
-
-    // Create SVG
-    svg = d3.select("#svganchor")
-        .append("svg")
-        .attr("width", w)
-        .attr("height", h);
-
-    // Lookup helper
-    function getValue(stateCode, year) {
-        if (!stateCode) return 0;
-        if (dataMap[year] && dataMap[year][stateCode] !== undefined) {
-            return dataMap[year][stateCode];
-        }
-        return 0;
-    }
-
-    // ======================================================
-    // UPDATE MAP COLOURS
-    // ======================================================
-    function updateMap(year) {
-        currentYear = year;
-        document.getElementById("yearDisplay").textContent = year;
-        document.getElementById("yearSlider").value = year;
-
-        svg.selectAll(".state-path")
-            .transition()
-            .duration(300)
-            .attr("fill", function (d) {
-                const rawName = d.properties.STATE_NAME || d.properties.STE_NAME16;
-                const stateCode = geoToCsv[rawName];
-                const value = getValue(stateCode, year);
-                return colorScale(value);
-            });
-    }
-
-    // Make updateMap accessible globally for controls
-    window.updateMap = updateMap;
-
-    // ======================================================
-    // LOAD GEOJSON
-    // ======================================================
-    d3.json("https://raw.githubusercontent.com/tonywr71/GeoJson-Data/master/australian-states.json",
-        function (geoError, json) {
-
-            if (geoError) {
-                console.error("Error loading GeoJSON:", geoError);
-                document.getElementById("loading").innerHTML = "Error loading map data.";
-                return;
-            }
-
-            document.getElementById("loading").style.display = "none";
-
-            // --------------------------------------------------
-            // DRAW STATES
-            // --------------------------------------------------
-            svg.selectAll("path")
-                .data(json.features)
-                .enter()
-                .append("path")
-                .attr("class", "state-path")
-                .attr("d", path)
-                .attr("fill", function (d) {
-                    const rawName = d.properties.STATE_NAME || d.properties.STE_NAME16;
-                    const stateCode = geoToCsv[rawName];
-                    const value = getValue(stateCode, currentYear);
-                    return colorScale(value);
-                })
-                .on("mouseover", function (d) {
-                    const rawName = d.properties.STATE_NAME || d.properties.STE_NAME16;
-                    const stateCode = geoToCsv[rawName];
-                    const value = getValue(stateCode, currentYear);
-
-                    tooltip.style("opacity", 1)
-                        .html(`<strong>${rawName}</strong><br>Year: ${currentYear}<br>Fines: ${value.toLocaleString()}`);
-                })
-                .on("mousemove", () => {
-                    tooltip.style("left", (d3.event.pageX + 10) + "px")
-                        .style("top", (d3.event.pageY - 28) + "px");
-                })
-                .on("mouseout", () => tooltip.style("opacity", 0));
-
-            // --------------------------------------------------
-            // STATE LABELS
-            // --------------------------------------------------
-            svg.selectAll(".state-label")
-                .data(json.features)
-                .enter()
-                .append("text")
-                .attr("class", "state-label")
-                .attr("text-anchor", "middle")
-                .attr("dy", ".35em")
-                .attr("transform", d => "translate(" + path.centroid(d) + ")")
-                .attr("font-size", "14px")
-                .attr("font-weight", "bold")
-                .attr("fill", "#333")
-                .text(d => {
-                    const rawName = d.properties.STATE_NAME || d.properties.STE_NAME16;
-                    return geoToCsv[rawName];
-                });
-
-            // --------------------------------------------------
-            // LEGEND BELOW SLIDER
-            // --------------------------------------------------
-            const legendSvg = d3.select("#legendContainer")
-                .append("svg")
-                .attr("width", 320)
-                .attr("height", 60);
-
-            const defs = legendSvg.append("defs");
-            const gradient = defs.append("linearGradient")
-                .attr("id", "legend-gradient");
-
-            gradient.selectAll("stop")
-                .data(colorScale.range())
-                .enter()
-                .append("stop")
-                .attr("offset", (d, i) => i / (colorScale.range().length - 1))
-                .attr("stop-color", d => d);
-
-            const legend = legendSvg.append("g")
-                .attr("transform", "translate(10, 10)");
-
-            legend.append("rect")
-                .attr("width", 300)
-                .attr("height", 20)
-                .style("fill", "url(#legend-gradient)")
-                .style("stroke", "#333");
-
-            const legendScale = d3.scale.linear()
-                .domain([0, maxValue])
-                .range([0, 300]);
-
-            const legendAxis = d3.svg.axis()
-                .scale(legendScale)
-                .orient("bottom")
-                .ticks(5)
-                .tickFormat(d3.format(".2s"));
-
-            legend.append("g")
-                .attr("transform", "translate(0, 20)")
-                .call(legendAxis);
-
-            // ======================================================
-            // SLIDER + PLAY CONTROLS
-            // ======================================================
-            document.getElementById("yearSlider").addEventListener("input", function () {
-                if (isPlaying) stopPlay();
-                updateMap(+this.value);
-            });
-
-            function startPlay() {
-                isPlaying = true;
-                document.getElementById("playBtn").textContent = "Pause";
-
-                playInterval = setInterval(() => {
-                    if (currentYear < 2024) {
-                        updateMap(currentYear + 1);
-                    } else {
-                        updateMap(2008);
-                    }
-                }, 1000);
-            }
-
-            function stopPlay() {
-                isPlaying = false;
-                document.getElementById("playBtn").textContent = "Play";
-                clearInterval(playInterval);
-            }
-
-            document.getElementById("playBtn").addEventListener("click", () => {
-                isPlaying ? stopPlay() : startPlay();
-            });
-
-            document.getElementById("resetBtn").addEventListener("click", () => {
-                stopPlay();
-                updateMap(2008);
-            });
-        }
-    );
-    deltaToggle.addEventListener("change", () => updateChart());
-    resetBtn.addEventListener("click", () => {
-        startSelect.value = String(years[0]);
-        endSelect.value = String(years[years.length - 1]);
-        focusSelect.value = "ALL";
-        deltaToggle.checked = false;
-        updateChart();
-    });
-}
-
 function aggregateByJurisdiction(records) {
     const totals = {};
     records.forEach((d) => {
@@ -403,18 +223,22 @@ function aggregateByJurisdiction(records) {
 
 function initLeaflet() {
     if (mapInstance || !document.getElementById("australia-map")) return;
+    
     mapInstance = L.map("australia-map", {
         scrollWheelZoom: false,
         minZoom: 3,
-        maxZoom: 8
+        maxZoom: 8,
+        zoomControl: true
     }).setView([-25.3, 133.77], 4);
 
     L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
-        attribution:
-            '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
         subdomains: "abcd",
         maxZoom: 19
     }).addTo(mapInstance);
+
+    // Add zoom control to bottom right
+    mapInstance.zoomControl.setPosition('bottomright');
 }
 
 function updateMapLegendRange(min, max) {
@@ -445,91 +269,169 @@ function updateMapLegendRange(min, max) {
 
 function updateHeatLayer(points) {
     if (!mapInstance) return;
-    if (!heatLayer) {
+    if (heatLayer) {
+        mapInstance.removeLayer(heatLayer);
+    }
+    
+    if (points.length > 0) {
         heatLayer = L.heatLayer(points, {
             radius: 35,
             blur: 25,
             maxZoom: 8,
-            minOpacity: 0.35
+            minOpacity: 0.35,
+            gradient: {
+                0.4: 'blue',
+                0.6: 'cyan',
+                0.7: 'lime',
+                0.8: 'yellow',
+                1.0: 'red'
+            }
         }).addTo(mapInstance);
-    } else {
-        heatLayer.setLatLngs(points);
     }
 }
 
 function updateMapLayers(filtered) {
-    if (!mapInstance || !geojsonData) return;
+    if (!mapInstance || !geojsonData) {
+        console.log("Map instance or GeoJSON data not available");
+        return;
+    }
+
     const totals = aggregateByJurisdiction(filtered);
+    console.log("Filtered totals:", totals);
+    
     const values = Object.values(totals).filter((v) => Number.isFinite(v) && v > 0);
     const min = values.length ? d3.min(values) : 0;
     const max = values.length ? d3.max(values) : 1;
+    
+    console.log("Value range:", min, max);
+    
     mapColorScale.domain([min || 0, max || 1]);
 
+    // Remove existing choropleth layer
     if (choroplethLayer) {
-        choroplethLayer.remove();
+        mapInstance.removeLayer(choroplethLayer);
     }
 
+    // Create new choropleth layer
     choroplethLayer = L.geoJSON(geojsonData, {
         style: (feature) => {
-            const code = geoNameToCode[feature.properties && feature.properties.STATE_NAME];
+            const stateName = feature.properties?.STATE_NAME || feature.properties?.name;
+            const code = normalizeStateName(stateName);
             const value = totals[code] || 0;
+            
+            console.log(`Styling ${stateName} (${code}): ${value} fines`);
+            
             return {
-                weight: 1,
+                weight: 2,
                 color: "#ffffff",
                 fillColor: value ? mapColorScale(value) : "#e8eef7",
-                fillOpacity: value ? 0.85 : 0.35
+                fillOpacity: value ? 0.85 : 0.35,
+                opacity: 1
             };
         },
         onEachFeature: (feature, layer) => {
-            const code = geoNameToCode[feature.properties && feature.properties.STATE_NAME];
-            if (!code) return;
+            const stateName = feature.properties?.STATE_NAME || feature.properties?.name;
+            const code = normalizeStateName(stateName);
+            if (!code) {
+                console.log("No code found for:", stateName);
+                return;
+            }
+            
             const value = totals[code] || 0;
             const label = jurisdictionMeta[code]?.name || code;
+            
             layer.bindTooltip(
-                `<strong>${label}</strong><br>${formatter(value)} fines (filtered range)`
+                `<strong>${label}</strong><br>${formatter(value)} fines (filtered range)`,
+                { sticky: true }
             );
+            
             layer.on({
-                mouseover: () => {
-                    layer.setStyle({ weight: 2, color: "#0f6ed6" });
+                mouseover: function(e) {
+                    layer.setStyle({ 
+                        weight: 3, 
+                        color: "#0f6ed6",
+                        fillOpacity: 0.9
+                    });
+                    layer.bringToFront();
                 },
-                mouseout: () => {
+                mouseout: function(e) {
                     choroplethLayer.resetStyle(layer);
                 }
             });
         }
     }).addTo(mapInstance);
 
+    // Update heat layer points
     const heatPoints = Object.entries(jurisdictionMeta)
         .map(([code, meta]) => {
             const value = totals[code];
-            if (!value) return null;
-            const intensity = max ? value / max : 0;
-            return [meta.lat, meta.lng, intensity];
+            if (!value || value === 0) return null;
+            const intensity = max ? Math.min(value / max, 1) : 0;
+            return [meta.lat, meta.lng, intensity * 0.8]; // Scale intensity
         })
         .filter(Boolean);
 
+    console.log("Heat points:", heatPoints);
     updateHeatLayer(heatPoints);
     updateMapLegendRange(min || 0, max || 1);
 }
 
 async function loadGeoJSON() {
-    const response = await fetch(geoJsonUrl);
-    if (!response.ok) {
-        throw new Error("Failed to load Australia GeoJSON");
+    try {
+        console.log("Loading GeoJSON from:", geoJsonUrl);
+        const response = await fetch(geoJsonUrl);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const geojson = await response.json();
+        console.log("GeoJSON loaded successfully:", geojson);
+        console.log("Features:", geojson.features?.map(f => ({
+            name: f.properties?.STATE_NAME || f.properties?.name,
+            properties: f.properties
+        })));
+        return geojson;
+    } catch (error) {
+        console.error("Failed to load GeoJSON:", error);
+        // Fallback: create a simple GeoJSON structure
+        console.log("Using fallback GeoJSON data");
+        return {
+            type: "FeatureCollection",
+            features: Object.entries(jurisdictionMeta).map(([code, meta]) => ({
+                type: "Feature",
+                properties: {
+                    STATE_NAME: jurisdictionMeta[code].name,
+                    code: code
+                },
+                geometry: {
+                    type: "Point",
+                    coordinates: [meta.lng, meta.lat]
+                }
+            }))
+        };
     }
-    return response.json();
 }
 
 function updateMapFromChart(filtered) {
     try {
+        console.log("Updating map with filtered data:", filtered.length, "records");
         updateMapLayers(filtered);
     } catch (error) {
         console.error("Failed to update map layers", error);
     }
 }
 
-function bootstrapChart() {
-    updateChart();
+function attachEvents() {
+    [startSelect, endSelect, focusSelect].forEach((el) =>
+        el.addEventListener("change", () => updateChart())
+    );
+    deltaToggle.addEventListener("change", () => updateChart());
+    resetBtn.addEventListener("click", () => {
+        startSelect.value = String(years[0]);
+        endSelect.value = String(years[years.length - 1]);
+        focusSelect.value = "ALL";
+        deltaToggle.checked = false;
+        updateChart();
+    });
 }
 
 function updateChart() {
@@ -629,6 +531,8 @@ function updateChart() {
 
 async function bootstrap() {
     try {
+        console.log("Starting bootstrap...");
+        
         const [data, geojson] = await Promise.all([
             d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", (d) => ({
                 year: +d.YEAR,
@@ -638,6 +542,8 @@ async function bootstrap() {
             loadGeoJSON()
         ]);
 
+        console.log("Data loaded:", data.length, "records");
+        
         dataset = data.sort((a, b) => d3.ascending(a.year, b.year));
         years = Array.from(new Set(dataset.map((d) => d.year))).sort((a, b) => a - b);
         finesExtent = d3.extent(dataset, (d) => d.fines);
@@ -652,14 +558,19 @@ async function bootstrap() {
         divergingScale.domain([deltaExtent[0], 0, deltaExtent[1]]);
 
         geojsonData = geojson;
+        
+        console.log("Initializing Leaflet map...");
         initLeaflet();
         populateControls();
         attachEvents();
-        bootstrapChart();
+        updateChart();
+        
+        console.log("Bootstrap completed successfully");
     } catch (error) {
         console.error("Failed to initialise Q5 view", error);
         annotationsEl.html("<li>Unable to load data or map resources.</li>");
     }
 }
 
+// Start the application
 bootstrap();
