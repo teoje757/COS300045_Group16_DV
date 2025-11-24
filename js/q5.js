@@ -167,16 +167,14 @@ d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", function (error, csvData
                 });
 
             // --------------------------------------------------
-            // LEGEND
+            // LEGEND BELOW SLIDER
             // --------------------------------------------------
-            const legendWidth = 300;
-            const legendHeight = 20;
+            const legendSvg = d3.select("#legendContainer")
+                .append("svg")
+                .attr("width", 320)
+                .attr("height", 60);
 
-            const legend = svg.append("g")
-                .attr("class", "legend")
-                .attr("transform", `translate(${w - legendWidth - 50}, ${h - 80})`);
-
-            const defs = svg.append("defs");
+            const defs = legendSvg.append("defs");
             const gradient = defs.append("linearGradient")
                 .attr("id", "legend-gradient");
 
@@ -187,15 +185,18 @@ d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", function (error, csvData
                 .attr("offset", (d, i) => i / (colorScale.range().length - 1))
                 .attr("stop-color", d => d);
 
+            const legend = legendSvg.append("g")
+                .attr("transform", "translate(10, 10)");
+
             legend.append("rect")
-                .attr("width", legendWidth)
-                .attr("height", legendHeight)
+                .attr("width", 300)
+                .attr("height", 20)
                 .style("fill", "url(#legend-gradient)")
                 .style("stroke", "#333");
 
             const legendScale = d3.scale.linear()
                 .domain([0, maxValue])
-                .range([0, legendWidth]);
+                .range([0, 300]);
 
             const legendAxis = d3.svg.axis()
                 .scale(legendScale)
@@ -204,7 +205,7 @@ d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", function (error, csvData
                 .tickFormat(d3.format(".2s"));
 
             legend.append("g")
-                .attr("transform", `translate(0, ${legendHeight})`)
+                .attr("transform", "translate(0, 20)")
                 .call(legendAxis);
 
             // ======================================================
