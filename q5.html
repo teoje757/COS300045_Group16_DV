@@ -5,6 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Q5 · Mobile Phone Enforcement Heatmap</title>
     <link rel="stylesheet" href="css/q5-style.css">
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha512-sA+4J5B7hZ9E2sonMSKcwk5Y8ZndKyVKoE9pYNCXS6/4FwXk4Hknc0aF4Pjk6IZdxHcvk/oWsKXgP4gQnYwA1g=="
+        crossorigin=""
+    >
 </head>
 <body>
     <header class="q5-header">
@@ -127,6 +133,19 @@
             </div>
         </section>
 
+        <section class="map-panel" aria-labelledby="map-title">
+            <div class="map-header">
+                <div>
+                    <p class="panel-kicker">Spatial context</p>
+                    <h2 id="map-title">Choropleth + heatmap of enforcement intensity</h2>
+                    <p class="panel-subtext">Choropleth encodes total fines (current filters); heat layer shows hotspots via capital city centroids.</p>
+                </div>
+                <div id="map-legend" aria-label="Map legend"></div>
+            </div>
+            <div id="australia-map" role="img" aria-label="Map of Australian jurisdictions with choropleth and heat overlay"></div>
+            <p class="map-footnote">Filters above drive both charts, keeping temporal and spatial views in lockstep.</p>
+        </section>
+
         <!-- Callouts explain how to read & avoid chart junk -->
         <section class="insight-callouts">
             <article>
@@ -159,6 +178,12 @@
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+    <script
+        src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha512-vA3S3QAEyyvx6bMpiKFFitvolG/G5hgbf+5Q5e0siJmq9hw3rroWAtxEvsC0ZFwOuk+qS0bkkCm1cW0p+0p8JQ=="
+        crossorigin=""
+    ></script>
+    <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
     <script src="js/q5.js" type="module"></script>
 </body>
 </html>
