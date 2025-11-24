@@ -1,4 +1,8 @@
-// Global variables
+// ======================================================
+// Australia State Heatmap — Fully Fixed + Rewritten
+// ======================================================
+
+// Global state
 let currentYear = 2008;
 let isPlaying = false;
 let playInterval;
@@ -13,64 +17,54 @@ const h = 700;
 // Projection
 const projection = d3.geo.mercator()
     .center([132, -28])
-    .translate([w/2, h/2])
+    .translate([w / 2, h / 2])
     .scale(1000);
 
-// Path generator
-const path = d3.geo.path()
-    .projection(projection);
+const path = d3.geo.path().projection(projection);
 
 // Tooltip
 const tooltip = d3.select("#tooltip");
 
-// State code mapping (in case GeoJSON uses different codes)
-const stateCodeMap = {
-    'ACT': 'ACT',
-    'NSW': 'NSW', 
-    'NT': 'NT',
-    'QLD': 'QLD',
-    'SA': 'SA',
-    'TAS': 'TAS',
-    'VIC': 'VIC',
-    'WA': 'WA'
+// Correct mapping: GeoJSON → CSV jurisdiction codes
+const geoToCsv = {
+    "New South Wales": "NSW",
+    "Victoria": "VIC",
+    "Queensland": "QLD",
+    "South Australia": "SA",
+    "Western Australia": "WA",
+    "Tasmania": "TAS",
+    "Northern Territory": "NT",
+    "Australian Capital Territory": "ACT"
 };
 
-// Load CSV data
-d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", function(error, csvData) {
+// ======================================================
+// LOAD CSV
+// ======================================================
+d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", function (error, csvData) {
+
     if (error) {
         console.error("Error loading CSV:", error);
-        document.getElementById("loading").innerHTML = "Error loading data. Please check the CSV file path.";
+        document.getElementById("loading").innerHTML = "Error loading CSV.";
         return;
     }
 
-    console.log("CSV loaded successfully:", csvData.length, "rows");
-
-    // Parse data and create a map for quick lookup
-    // Updated to use YEAR, JURISDICTION, and FINES columns
+    // Build lookup map: dataMap[year][jurisdiction] = fines
     csvData.forEach(d => {
-        const year = +d.YEAR;  // Changed from d.year
-        const state = d.JURISDICTION.trim();  // Changed from d.state
-        const value = +d.FINES;  // Changed from d.value
-        
-        if (!dataMap[year]) {
-            dataMap[year] = {};
-        }
+        const year = +d.YEAR;
+        const state = d.JURISDICTION.trim();
+        const value = +d.FINES;
+
+        if (!dataMap[year]) dataMap[year] = {};
         dataMap[year][state] = value;
     });
 
-    console.log("Data map created:", dataMap);
-
-    // Get all values for color scale
-    const allValues = csvData.map(d => +d.FINES);  // Changed from d.value
+    const allValues = csvData.map(d => +d.FINES);
     const maxValue = d3.max(allValues);
-    const minValue = d3.min(allValues);
-    
-    console.log("Value range:", minValue, "to", maxValue);
 
-    // Create color scale
+    // Color scale
     colorScale = d3.scale.linear()
         .domain([0, maxValue])
-        .range(['#ffffcc', '#800026'])
+        .range(["#ffffcc", "#800026"])
         .interpolate(d3.interpolateHcl);
 
     // Create SVG
@@ -79,15 +73,18 @@ d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", function(error, csvData)
         .attr("width", w)
         .attr("height", h);
 
-    // Function to get value for state and year
-    function getValue(state, year) {
-        if (dataMap[year] && dataMap[year][state] !== undefined) {
-            return dataMap[year][state];
+    // Lookup helper
+    function getValue(stateCode, year) {
+        if (!stateCode) return 0;
+        if (dataMap[year] && dataMap[year][stateCode] !== undefined) {
+            return dataMap[year][stateCode];
         }
         return 0;
     }
 
-    // Function to update map colors
+    // ======================================================
+    // UPDATE MAP COLOURS
+    // ======================================================
     function updateMap(year) {
         currentYear = year;
         document.getElementById("yearDisplay").textContent = year;
@@ -96,170 +93,155 @@ d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", function(error, csvData)
         svg.selectAll(".state-path")
             .transition()
             .duration(300)
-            .attr("fill", function(d) {
-                const stateCode = d.properties.STATE_CODE || 
-                                 d.properties.STE_CODE16 || 
-                                 d.properties.STATE_NAME || 
-                                 d.properties.STE_NAME16;
+            .attr("fill", function (d) {
+                const rawName = d.properties.STATE_NAME || d.properties.STE_NAME16;
+                const stateCode = geoToCsv[rawName];
                 const value = getValue(stateCode, year);
                 return colorScale(value);
             });
     }
 
-    // Load GeoJSON
-    d3.json("https://raw.githubusercontent.com/tonywr71/GeoJson-Data/master/australian-states.json", function(geoError, json) {
-        if (geoError) {
-            console.error("Error loading GeoJSON:", geoError);
-            document.getElementById("loading").innerHTML = "Error loading map data.";
-            return;
-        }
+    // Make updateMap accessible globally for controls
+    window.updateMap = updateMap;
 
-        console.log("GeoJSON loaded:", json.features.length, "features");
-        console.log("Sample feature properties:", json.features[0].properties);
-        
-        // Log all state codes to see what we're working with
-        json.features.forEach(f => {
-            console.log("GeoJSON state:", f.properties.STATE_CODE, f.properties.STATE_NAME);
-        });
-        
-        document.getElementById("loading").style.display = "none";
+    // ======================================================
+    // LOAD GEOJSON
+    // ======================================================
+    d3.json("https://raw.githubusercontent.com/tonywr71/GeoJson-Data/master/australian-states.json",
+        function (geoError, json) {
 
-        // Draw states
-        svg.selectAll("path")
-            .data(json.features)
-            .enter()
-            .append("path")
-            .attr("class", "state-path")
-            .attr("d", path)
-            .attr("fill", function(d) {
-                // Try multiple property names to find the state code
-                const stateCode = d.properties.STATE_CODE || 
-                                 d.properties.STE_CODE16 || 
-                                 d.properties.STATE_NAME || 
-                                 d.properties.STE_NAME16;
-                const value = getValue(stateCode, currentYear);
-                console.log("State:", stateCode, "Year:", currentYear, "Value:", value, "Color:", colorScale(value));
-                return colorScale(value);
-            })
-            .on("mouseover", function(d) {
-                const stateCode = d.properties.STATE_CODE || 
-                                 d.properties.STE_CODE16 || 
-                                 d.properties.STATE_NAME || 
-                                 d.properties.STE_NAME16;
-                const stateName = d.properties.STATE_NAME || d.properties.STE_NAME16 || stateCode;
-                const value = getValue(stateCode, currentYear);
-                
-                tooltip.style("opacity", 1)
-                    .html(`<strong>${stateName}</strong><br>Year: ${currentYear}<br>Fines: ${value.toLocaleString()}`);
-            })
-            .on("mousemove", function() {
-                tooltip.style("left", (d3.event.pageX + 10) + "px")
-                    .style("top", (d3.event.pageY - 28) + "px");
-            })
-            .on("mouseout", function() {
-                tooltip.style("opacity", 0);
+            if (geoError) {
+                console.error("Error loading GeoJSON:", geoError);
+                document.getElementById("loading").innerHTML = "Error loading map data.";
+                return;
+            }
+
+            document.getElementById("loading").style.display = "none";
+
+            // --------------------------------------------------
+            // DRAW STATES
+            // --------------------------------------------------
+            svg.selectAll("path")
+                .data(json.features)
+                .enter()
+                .append("path")
+                .attr("class", "state-path")
+                .attr("d", path)
+                .attr("fill", function (d) {
+                    const rawName = d.properties.STATE_NAME || d.properties.STE_NAME16;
+                    const stateCode = geoToCsv[rawName];
+                    const value = getValue(stateCode, currentYear);
+                    return colorScale(value);
+                })
+                .on("mouseover", function (d) {
+                    const rawName = d.properties.STATE_NAME || d.properties.STE_NAME16;
+                    const stateCode = geoToCsv[rawName];
+                    const value = getValue(stateCode, currentYear);
+
+                    tooltip.style("opacity", 1)
+                        .html(`<strong>${rawName}</strong><br>Year: ${currentYear}<br>Fines: ${value.toLocaleString()}`);
+                })
+                .on("mousemove", () => {
+                    tooltip.style("left", (d3.event.pageX + 10) + "px")
+                        .style("top", (d3.event.pageY - 28) + "px");
+                })
+                .on("mouseout", () => tooltip.style("opacity", 0));
+
+            // --------------------------------------------------
+            // STATE LABELS
+            // --------------------------------------------------
+            svg.selectAll(".state-label")
+                .data(json.features)
+                .enter()
+                .append("text")
+                .attr("class", "state-label")
+                .attr("text-anchor", "middle")
+                .attr("dy", ".35em")
+                .attr("transform", d => "translate(" + path.centroid(d) + ")")
+                .attr("font-size", "14px")
+                .attr("font-weight", "bold")
+                .attr("fill", "#333")
+                .text(d => {
+                    const rawName = d.properties.STATE_NAME || d.properties.STE_NAME16;
+                    return geoToCsv[rawName];
+                });
+
+            // --------------------------------------------------
+            // LEGEND
+            // --------------------------------------------------
+            const legendWidth = 300;
+            const legendHeight = 20;
+
+            const legend = svg.append("g")
+                .attr("class", "legend")
+                .attr("transform", `translate(${w - legendWidth - 50}, ${h - 80})`);
+
+            const defs = svg.append("defs");
+            const gradient = defs.append("linearGradient")
+                .attr("id", "legend-gradient");
+
+            gradient.selectAll("stop")
+                .data(colorScale.range())
+                .enter()
+                .append("stop")
+                .attr("offset", (d, i) => i / (colorScale.range().length - 1))
+                .attr("stop-color", d => d);
+
+            legend.append("rect")
+                .attr("width", legendWidth)
+                .attr("height", legendHeight)
+                .style("fill", "url(#legend-gradient)")
+                .style("stroke", "#333");
+
+            const legendScale = d3.scale.linear()
+                .domain([0, maxValue])
+                .range([0, legendWidth]);
+
+            const legendAxis = d3.svg.axis()
+                .scale(legendScale)
+                .orient("bottom")
+                .ticks(5)
+                .tickFormat(d3.format(".2s"));
+
+            legend.append("g")
+                .attr("transform", `translate(0, ${legendHeight})`)
+                .call(legendAxis);
+
+            // ======================================================
+            // SLIDER + PLAY CONTROLS
+            // ======================================================
+            document.getElementById("yearSlider").addEventListener("input", function () {
+                if (isPlaying) stopPlay();
+                updateMap(+this.value);
             });
 
-        // State labels - positioned at centroids
-        svg.selectAll(".state-label")
-            .data(json.features)
-            .enter()
-            .append("text")
-            .attr("class", "state-label")
-            .attr("fill", "#333")
-            .attr("font-weight", "bold")
-            .attr("font-size", "14px")
-            .attr("text-anchor", "middle")
-            .attr("dy", ".35em")
-            .style("pointer-events", "none")
-            .attr("transform", function(d) {
-                return "translate(" + path.centroid(d) + ")";
-            })
-            .text(function(d) {
-                return d.properties.STATE_CODE || 
-                       d.properties.STE_CODE16 || 
-                       d.properties.STATE_NAME || 
-                       d.properties.STE_NAME16;
+            function startPlay() {
+                isPlaying = true;
+                document.getElementById("playBtn").textContent = "Pause";
+
+                playInterval = setInterval(() => {
+                    if (currentYear < 2024) {
+                        updateMap(currentYear + 1);
+                    } else {
+                        updateMap(2008);
+                    }
+                }, 1000);
+            }
+
+            function stopPlay() {
+                isPlaying = false;
+                document.getElementById("playBtn").textContent = "Play";
+                clearInterval(playInterval);
+            }
+
+            document.getElementById("playBtn").addEventListener("click", () => {
+                isPlaying ? stopPlay() : startPlay();
             });
 
-        // Add legend
-        const legendWidth = 300;
-        const legendHeight = 20;
-        const legend = svg.append("g")
-            .attr("class", "legend")
-            .attr("transform", `translate(${w - legendWidth - 50}, ${h - 80})`);
-
-        const legendScale = d3.scale.linear()
-            .domain([0, maxValue])
-            .range([0, legendWidth]);
-
-        const legendAxis = d3.svg.axis()
-            .scale(legendScale)
-            .orient("bottom")
-            .ticks(5)
-            .tickFormat(d3.format(".2s"));
-
-        // Legend gradient
-        const defs = svg.append("defs");
-        const gradient = defs.append("linearGradient")
-            .attr("id", "legend-gradient");
-
-        gradient.selectAll("stop")
-            .data(colorScale.range())
-            .enter()
-            .append("stop")
-            .attr("offset", (d, i) => i / (colorScale.range().length - 1))
-            .attr("stop-color", d => d);
-
-        legend.append("rect")
-            .attr("width", legendWidth)
-            .attr("height", legendHeight)
-            .style("fill", "url(#legend-gradient)")
-            .style("stroke", "#333")
-            .style("stroke-width", "1px");
-
-        legend.append("g")
-            .attr("transform", `translate(0, ${legendHeight})`)
-            .call(legendAxis);
-
-        // Slider control
-        document.getElementById("yearSlider").addEventListener("input", function() {
-            if (isPlaying) {
+            document.getElementById("resetBtn").addEventListener("click", () => {
                 stopPlay();
-            }
-            updateMap(parseInt(this.value));
-        });
-
-        // Play functionality
-        function startPlay() {
-            isPlaying = true;
-            document.getElementById("playBtn").textContent = "Pause";
-            playInterval = setInterval(() => {
-                if (currentYear < 2024) {
-                    updateMap(currentYear + 1);
-                } else {
-                    updateMap(2008);
-                }
-            }, 1000);
+                updateMap(2008);
+            });
         }
-
-        function stopPlay() {
-            isPlaying = false;
-            document.getElementById("playBtn").textContent = "Play";
-            clearInterval(playInterval);
-        }
-
-        document.getElementById("playBtn").addEventListener("click", function() {
-            if (isPlaying) {
-                stopPlay();
-            } else {
-                startPlay();
-            }
-        });
-
-        document.getElementById("resetBtn").addEventListener("click", function() {
-            stopPlay();
-            updateMap(2008);
-        });
-    });
+    );
 });
