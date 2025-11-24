@@ -46,10 +46,11 @@ d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", function(error, csvData)
     console.log("CSV loaded successfully:", csvData.length, "rows");
 
     // Parse data and create a map for quick lookup
+    // Updated to use YEAR, JURISDICTION, and FINES columns
     csvData.forEach(d => {
-        const year = +d.year;
-        const state = d.state.trim();
-        const value = +d.value;
+        const year = +d.YEAR;  // Changed from d.year
+        const state = d.JURISDICTION.trim();  // Changed from d.state
+        const value = +d.FINES;  // Changed from d.value
         
         if (!dataMap[year]) {
             dataMap[year] = {};
@@ -60,7 +61,7 @@ d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", function(error, csvData)
     console.log("Data map created:", dataMap);
 
     // Get all values for color scale
-    const allValues = csvData.map(d => +d.value);
+    const allValues = csvData.map(d => +d.FINES);  // Changed from d.value
     const maxValue = d3.max(allValues);
     const minValue = d3.min(allValues);
     
@@ -134,7 +135,7 @@ d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", function(error, csvData)
                 const value = getValue(stateCode, currentYear);
                 
                 tooltip.style("opacity", 1)
-                    .html(`<strong>${stateName}</strong><br>Year: ${currentYear}<br>Value: ${value.toLocaleString()}`);
+                    .html(`<strong>${stateName}</strong><br>Year: ${currentYear}<br>Fines: ${value.toLocaleString()}`);
             })
             .on("mousemove", function() {
                 tooltip.style("left", (d3.event.pageX + 10) + "px")
