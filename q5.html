@@ -1,143 +1,334 @@
 <!DOCTYPE html>
 <html lang="en">
-	<head>
-		<link href='https://fonts.googleapis.com/css?family=Roboto' rel='stylesheet' type='text/css'>
-		<meta charset="utf-8">
-		<title>Australia map</title>
-		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
-		<style type="text/css">
+<head>
+    <link href='https://fonts.googleapis.com/css?family=Roboto' rel='stylesheet' type='text/css'>
+    <meta charset="utf-8">
+    <title>Australia Heatmap</title>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
+    <style type="text/css">
+        body {
+            margin: 0;
+            background-color: lavender;
+            font-family: 'Roboto', sans-serif;
+            font-weight: 300;
+        }
 
+        #container {
+            width: 900px;
+            margin-left: auto;
+            margin-right: auto;
+            margin-top: 50px;
+            padding: 5px 50px 10px 50px;
+            background-color: white;
+            box-shadow: 1px 1px 1px 1px #fff;
+        }
 
+        h1 {
+            font-weight: 700;
+            color: #4e5a64;
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
 
-			body {
-				margin: 0;
-				background-color: lavender;
-				font-family: 'Roboto', sans-serif;
-				font-weight: 300;
-			}
+        p {
+            font-size: 16px;
+            margin: 15px 0 10px 0;
+        }
 
-			#container {
-				width: 900px;
-				margin-left: auto;
-				margin-right: auto;
-				margin-top: 50px;
-				padding: 5px 50px 10px 50px;
-				background-color: white;
-				box-shadow: 1px 1px 1px 1px #fff;
-			}
+        svg {
+            background-color: white;
+        }
 
-			img.displayed {
-				    display: block;
-				    margin-left: auto;
-				    margin-right: auto;
-			}
+        #controls {
+            margin: 20px 0;
+            text-align: center;
+        }
 
-			h1 {
-				font-weight: 700;
-				color: #4e5a64;
-				font-size: 48px;
-				margin-bottom: 10px;
-			}
+        #yearSlider {
+            width: 400px;
+            margin: 0 20px;
+        }
 
-			h2 {
-				font-weight: 700;
-				color: #4e5a64;
-				font-size: 26px;
-				margin-bottom: 0px;
-				padding-bottom: 0px;
-				}
+        #yearDisplay {
+            font-size: 24px;
+            font-weight: bold;
+            color: #4e5a64;
+            margin: 10px 0;
+        }
 
-			p {
-				font-size: 16px;
-				margin: 15px 0 10px 0;
-			}
+        .state-path {
+            stroke: #333;
+            stroke-width: 1.5px;
+            transition: opacity 0.3s;
+        }
 
-			svg {
-				background-color: white;
-			}
+        .state-path:hover {
+            opacity: 0.7;
+            stroke-width: 2.5px;
+        }
 
+        .legend {
+            font-size: 12px;
+        }
 
+        .tooltip {
+            position: absolute;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            border-radius: 5px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 14px;
+        }
 
-		</style>
-	</head>
-	<body>
-		<div id="container">
-		<h1>Australia map</h1>
-		<p>This is a map of Australia created with d3.js. I'm using a qualitative Brewer palette.</p>
-		<div id="svganchor"></div>
-		<br>
-		<p>Source of the shapefile: Australian Bureau of Statistics</p>
-		</div>
-		<script type="text/javascript">
+        button {
+            padding: 8px 16px;
+            margin: 0 5px;
+            background-color: #4e5a64;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'Roboto', sans-serif;
+            font-size: 14px;
+        }
 
+        button:hover {
+            background-color: #6a7680;
+        }
 
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <h1>Australia Heatmap by State and Year</h1>
+        <p>Interactive visualization showing mobile phone enforcement patterns by state over time. Use the slider or play button to explore different years.</p>
+        
+        <div id="controls">
+            <button id="playBtn">Play</button>
+            <button id="resetBtn">Reset</button>
+            <br><br>
+            <div id="yearDisplay">2014</div>
+            <input type="range" id="yearSlider" min="2014" max="2024" value="2014" step="1">
+        </div>
+        
+        <div id="svganchor"></div>
+        <div class="tooltip" id="tooltip"></div>
+        <br>
+        <p>Source: Australian Bureau of Statistics | Data shows mobile phone enforcement patterns by state from 2014-2024</p>
+    </div>
 
-			//Width and height
-			var w = 850;
-			var h = 700;
+    <script type="text/javascript">
+        // Global variables
+        let currentYear = 2014;
+        let isPlaying = false;
+        let playInterval;
+        let colorScale;
+        let svg;
 
-			//Define map projection
-			var projection = d3.geo.mercator()
-								   .center([ 132, -28 ])
-								   .translate([ w/2, h/2 ])
-								   .scale(1000);
+        // Dimensions
+        const w = 850;
+        const h = 700;
 
+        // Projection
+        const projection = d3.geo.mercator()
+            .center([132, -28])
+            .translate([w/2, h/2])
+            .scale(1000);
 
-			//Define path generator
-			var path = d3.geo.path()
-							 .projection(projection);
+        // Path generator
+        const path = d3.geo.path()
+            .projection(projection);
 
-			var color = d3.scale.ordinal()
-							.range(['#8dd3c7','#ffffb3','#bebada','#fb8072','#80b1d3','#fdb462','#b3de69','#fccde5','#d9d9d9']);
+        // Tooltip
+        const tooltip = d3.select("#tooltip");
 
-			//Create SVG
-			var svg = d3.select("#svganchor")
-						.append("svg")
-						.attr("width", w)
-						.attr("height", h);
+        // Load CSV data
+        d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", function(error, csvData) {
+            if (error) {
+                console.error("Error loading CSV:", error);
+                return;
+            }
 
-			//Load in GeoJSON data
-			d3.json("https://raw.githubusercontent.com/tonywr71/GeoJson-Data/master/australian-states.json", function(json){
+            // Parse data
+            const data = csvData.map(d => ({
+                year: +d.year,
+                state: d.state,
+                value: +d.value
+            }));
 
-				
-				//Bind data and create one path per GeoJSON feature
-				svg.selectAll("path")
-				   .data(json.features)
-				   .enter()
-				   .append("path")
-				   .attr("d", path)
-				   .attr("stroke", "dimgray")
-				   .attr("fill", function(d, i) {return color(i)});
-				  
-				 //States
-				svg.selectAll("text")
-					.data(json.features)
-					.enter()
-					.append("text")
-					.attr("fill", "darkslategray")
-					.attr("transform", function(d) { return "translate(" + path.centroid(d) + ")"; })
-					.attr("text-anchor", "middle")
-    				.attr("dy", ".35em")
-					.text(function(d) {
-						return d.properties.STATE_NAME;
-					});
+            // Create color scale
+            const maxValue = d3.max(data, d => d.value);
+            colorScale = d3.scale.linear()
+                .domain([0, maxValue])
+                .range(['#ffffcc', '#800026'])
+                .interpolate(d3.interpolateHcl);
 
-				//Append the name
-				svg.append("text")
-					.attr("x", 446)
-					.attr("y", 340)
-					.attr("font-size", 90)
-					.attr("font-weight", "bold")
-					.attr("font-family", "Roboto")
-					.attr("text-anchor", "middle")
-					.attr("opacity", 0.10)
-					.text("AUSTRALIA");
-						
-			});
+            // Create SVG
+            svg = d3.select("#svganchor")
+                .append("svg")
+                .attr("width", w)
+                .attr("height", h);
 
+            // Function to get value for state and year
+            function getValue(state, year) {
+                const record = data.find(d => d.state === state && d.year === year);
+                return record ? record.value : 0;
+            }
 
+            // Function to update map colors
+            function updateMap(year) {
+                currentYear = year;
+                document.getElementById("yearDisplay").textContent = year;
+                document.getElementById("yearSlider").value = year;
 
-		
-		</script>
-	</body>
+                svg.selectAll(".state-path")
+                    .transition()
+                    .duration(300)
+                    .attr("fill", function(d) {
+                        const state = d.properties.STATE_CODE;
+                        const value = getValue(state, year);
+                        return colorScale(value);
+                    });
+            }
+
+            // Load GeoJSON
+            d3.json("https://raw.githubusercontent.com/tonywr71/GeoJson-Data/master/australian-states.json", function(json) {
+                
+                // Draw states
+                svg.selectAll("path")
+                    .data(json.features)
+                    .enter()
+                    .append("path")
+                    .attr("class", "state-path")
+                    .attr("d", path)
+                    .attr("fill", function(d) {
+                        const state = d.properties.STATE_CODE;
+                        const value = getValue(state, currentYear);
+                        return colorScale(value);
+                    })
+                    .on("mouseover", function(d) {
+                        const state = d.properties.STATE_CODE;
+                        const stateName = d.properties.STATE_NAME;
+                        const value = getValue(state, currentYear);
+                        
+                        tooltip.style("opacity", 1)
+                            .html(`<strong>${stateName}</strong><br>Year: ${currentYear}<br>Value: ${value.toLocaleString()}`);
+                    })
+                    .on("mousemove", function() {
+                        tooltip.style("left", (d3.event.pageX + 10) + "px")
+                            .style("top", (d3.event.pageY - 28) + "px");
+                    })
+                    .on("mouseout", function() {
+                        tooltip.style("opacity", 0);
+                    });
+
+                // State labels
+                svg.selectAll(".state-label")
+                    .data(json.features)
+                    .enter()
+                    .append("text")
+                    .attr("class", "state-label")
+                    .attr("fill", "white")
+                    .attr("stroke", "black")
+                    .attr("stroke-width", "0.5px")
+                    .attr("transform", function(d) {
+                        return "translate(" + path.centroid(d) + ")";
+                    })
+                    .attr("text-anchor", "middle")
+                    .attr("dy", ".35em")
+                    .attr("font-size", "12px")
+                    .attr("font-weight", "bold")
+                    .style("pointer-events", "none")
+                    .text(function(d) {
+                        return d.properties.STATE_CODE;
+                    });
+
+                // Add legend
+                const legendWidth = 300;
+                const legendHeight = 20;
+                const legend = svg.append("g")
+                    .attr("class", "legend")
+                    .attr("transform", `translate(${w - legendWidth - 50}, ${h - 80})`);
+
+                const legendScale = d3.scale.linear()
+                    .domain([0, maxValue])
+                    .range([0, legendWidth]);
+
+                const legendAxis = d3.svg.axis()
+                    .scale(legendScale)
+                    .orient("bottom")
+                    .ticks(5)
+                    .tickFormat(d3.format(".2s"));
+
+                // Legend gradient
+                const defs = svg.append("defs");
+                const gradient = defs.append("linearGradient")
+                    .attr("id", "legend-gradient");
+
+                gradient.selectAll("stop")
+                    .data(colorScale.range())
+                    .enter()
+                    .append("stop")
+                    .attr("offset", (d, i) => i / (colorScale.range().length - 1))
+                    .attr("stop-color", d => d);
+
+                legend.append("rect")
+                    .attr("width", legendWidth)
+                    .attr("height", legendHeight)
+                    .style("fill", "url(#legend-gradient)");
+
+                legend.append("g")
+                    .attr("transform", `translate(0, ${legendHeight})`)
+                    .call(legendAxis);
+            });
+
+            // Slider control
+            document.getElementById("yearSlider").addEventListener("input", function() {
+                if (isPlaying) {
+                    stopPlay();
+                }
+                updateMap(parseInt(this.value));
+            });
+
+            // Play functionality
+            function startPlay() {
+                isPlaying = true;
+                document.getElementById("playBtn").textContent = "Pause";
+                playInterval = setInterval(() => {
+                    if (currentYear < 2024) {
+                        updateMap(currentYear + 1);
+                    } else {
+                        updateMap(2014);
+                    }
+                }, 1000);
+            }
+
+            function stopPlay() {
+                isPlaying = false;
+                document.getElementById("playBtn").textContent = "Play";
+                clearInterval(playInterval);
+            }
+
+            document.getElementById("playBtn").addEventListener("click", function() {
+                if (isPlaying) {
+                    stopPlay();
+                } else {
+                    startPlay();
+                }
+            });
+
+            document.getElementById("resetBtn").addEventListener("click", function() {
+                stopPlay();
+                updateMap(2014);
+            });
+        });
+    </script>
+</body>
 </html>
