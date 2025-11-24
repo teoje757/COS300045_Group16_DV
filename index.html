@@ -9,49 +9,74 @@
 <body>
     <header class="site-header">
         <nav class="nav">
-            <div class="nav-brand">COS30045 Group 16</div>
+            <div class="nav-brand">Hands Off The Phone</div>
             <ul class="nav-links">
                 <li><a href="#">Home</a></li>
-                <li><a href="#temporal">Trends</a></li>
-                <li><a href="#jurisdiction">Jurisdictions</a></li>
-                <li><a href="#insights">Insights</a></li>
+                <li><a href="#dashboards">Dashboards</a></li>
+                <li><a href="q5.html">Heatmap</a></li>
             </ul>
         </nav>
     </header>
 
     <main>
-        <!-- Hero section designed to match provided mockup -->
-        <section class="hero">
-            <!-- subtle SVG background (map-like abstract shape) -->
-            <div class="hero-bg" aria-hidden="true"></div>
-
+        <section class="hero hero--simple">
             <div class="hero-content">
+                <p class="hero-kicker">Camera-led enforcement · headline insight</p>
                 <h1>Mobile Phone Use While Driving in Australia</h1>
-                <p class="hero-lead">Mobile phone fines fell 8.7% (2022–2024) to 330,926, with camera detection (87.6% fines) showing initial spikes in new areas like ACT (780 per 10,000 holders) but major long-term drops in established regions - NSW down 25%, QLD down 41% — proving cameras change driver behavior.</p>
-                <a class="btn-primary" href="#insights">Explore more</a>
-            </div>
-        </section>
-
-        <section id="visualization-container">
-            <!-- Visualization content will be added here -->
-            <div class="viz-links">
-                <h2>Explore Our Visualizations</h2>
-                <div class="viz-cards">
-                    <a href="q3.html" class="viz-card">
-                        <h3>📊 Q3: Enforcement Trends Over Time</h3>
-                        <p>Evolution of mobile phone fines across Australia (2008-2024)</p>
-                        <span class="viz-btn">View Visualization →</span>
-                    </a>
-                    <a href="q4.html" class="viz-card">
-                        <h3>📱 Q4: Fine Detection Methods</h3>
-                        <p>Camera-detected vs Police-issued fines by jurisdiction</p>
-                        <span class="viz-btn">View Visualization →</span>
-                    </a>
-                    <!-- More visualizations will be added here -->
+                <p class="hero-lead">
+                    Mobile phone fines fell 8.7% (2022–2024) to 330,926, with camera detection (87.6% fines)
+                    showing initial spikes in new areas like ACT (780 per 10,000 holders) but major long-term
+                    drops in established regions — NSW down 25%, QLD down 41% — proving cameras change driver behavior.
+                </p>
+                <div class="hero-actions">
+                    <a class="btn-primary" href="#dashboards">Explore the story</a>
+                    <a class="btn-secondary" href="q5.html">Jump to heatmap</a>
                 </div>
             </div>
         </section>
 
+        <section class="dashboard-grid" id="dashboards">
+            <div class="dashboard-intro">
+                <p class="section-kicker">Guided navigation</p>
+                <h2>Choose the chapter you want to dive into</h2>
+                <p>Each card focuses on a different question across the dataset. Start with the national storyline, then compare detection modes, and finish with the heatmap of mobile phone enforcement intensity.</p>
+            </div>
+            <div class="card-grid">
+                <a href="q3.html" class="dash-card">
+                    <p class="card-tag">Q3 · Timeline</p>
+                    <h3>Are fines climbing or cooling?</h3>
+                    <p>Explore 2008–2024 jurisdiction time series with annotations that mark major policy shifts.</p>
+                    <ul>
+                        <li>Temporal trends & rolling averages</li>
+                        <li>Context markers for camera rollouts</li>
+                        <li>Highlights of surge vs stabilise years</li>
+                    </ul>
+                    <span class="card-cta">Open Q3 dashboard →</span>
+                </a>
+                <a href="q4.html" class="dash-card">
+                    <p class="card-tag">Q4 · Detection split</p>
+                    <h3>Who issues the fines?</h3>
+                    <p>Contrast camera-detected versus officer-issued infringements to see how automation changed the mix.</p>
+                    <ul>
+                        <li>Stacked comparisons per jurisdiction</li>
+                        <li>Callouts for camera dominance</li>
+                        <li>Governance notes on modality</li>
+                    </ul>
+                    <span class="card-cta">Open Q4 dashboard →</span>
+                </a>
+                <a href="q5.html" class="dash-card">
+                    <p class="card-tag">Q5 · Heatmap</p>
+                    <h3>Where are we still in the surge phase?</h3>
+                    <p>A year-by-jurisdiction heatmap with filters, tooltips, and annotations for rapid magnitude comparison.</p>
+                    <ul>
+                        <li>Colour-blind-safe sequential palette</li>
+                        <li>Year filters + delta toggle</li>
+                        <li>Narrative cues on spikes</li>
+                    </ul>
+                    <span class="card-cta">Open Q5 heatmap →</span>
+                </a>
+            </div>
+        </section>
     </main>
 
     <footer>
