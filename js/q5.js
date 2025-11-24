@@ -174,7 +174,7 @@ d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", function (error, csvData
 
             const legend = svg.append("g")
                 .attr("class", "legend")
-                .attr("transform", `translate(${w - legendWidth - 50}, ${h - 80})`);
+                .attr("transform", `translate(${w - legendWidth - 50}, ${h - 30})`);
 
             const defs = svg.append("defs");
             const gradient = defs.append("linearGradient")
