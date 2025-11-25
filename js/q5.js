@@ -92,16 +92,13 @@ d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", function (error, csvData
 
         svg.selectAll(".state-path")
             .transition()
-            .duration(500)
-            .ease("cubic-in-out")
+            .duration(300)
             .attr("fill", function (d) {
                 const rawName = d.properties.STATE_NAME || d.properties.STE_NAME16;
                 const stateCode = geoToCsv[rawName];
                 const value = getValue(stateCode, year);
                 return colorScale(value);
-            })
-            .attr("transform", "scale(1)")
-            .style("filter", "drop-shadow(0 2px 4px rgba(0,0,0,0.15))");
+            });
     }
 
     // Make updateMap accessible globally for controls
@@ -195,14 +192,7 @@ d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", function (error, csvData
             // --------------------------------------------------
             // LEGEND - TOP LEFT
             // --------------------------------------------------
-            const legendContainer = d3.select("#legendContainer");
-            
-            // Add title to legend
-            legendContainer.append("div")
-                .attr("class", "legend-title")
-                .text("Number of Fines");
-            
-            const legendSvg = legendContainer
+            const legendSvg = d3.select("#legendContainer")
                 .append("svg")
                 .attr("width", 100)
                 .attr("height", 120);
@@ -259,9 +249,7 @@ d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", function (error, csvData
 
             function startPlay() {
                 isPlaying = true;
-                const btn = document.getElementById("playBtn");
-                btn.textContent = "⏸ Pause";
-                btn.style.background = "linear-gradient(135deg, #E14C70, #C49EE8)";
+                document.getElementById("playBtn").textContent = "Pause";
 
                 playInterval = setInterval(() => {
                     if (currentYear < 2024) {
@@ -274,9 +262,7 @@ d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", function (error, csvData
 
             function stopPlay() {
                 isPlaying = false;
-                const btn = document.getElementById("playBtn");
-                btn.textContent = "▶ Play";
-                btn.style.background = "linear-gradient(135deg, #54ADD4, #667eea)";
+                document.getElementById("playBtn").textContent = "Play";
                 clearInterval(playInterval);
             }
 
