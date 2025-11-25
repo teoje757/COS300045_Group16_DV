@@ -11,7 +11,8 @@ body {
 /* ================================
    Container
 ================================ */
-#container {
+/* Remove old #container styles, use .card instead */
+/* #container {
     width: 900px;
     max-width: 95%;
     margin: 50px auto;
@@ -19,17 +20,9 @@ body {
     background-color: white;
     border-radius: 10px;
     box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
-}
+} */
 
-#legendContainer {
-    margin-top: 15px;
-    text-align: center;
-}
-
-#legendContainer svg {
-    display: inline-block;
-}
-
+/* --- Standardized Card and Header Styles (see inline style in HTML for .card, .card-header, .nav-btn, etc.) --- */
 
 /* ================================
    Typography

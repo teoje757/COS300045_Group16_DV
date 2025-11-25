@@ -162,6 +162,7 @@ function applyFilters() {
 
     // Recreate chart with filtered data
     createChart();
+    // Remove: renderInsightTiles(filteredData);
 }
 
 // Create the stacked bar chart
@@ -176,6 +177,8 @@ function createChart() {
             .style('padding', '40px')
             .style('color', '#6b7280')
             .text('No jurisdictions selected. Please select at least one jurisdiction from the filters.');
+        // Move renderInsightTiles here, after legend (which is empty in this case)
+        renderInsightTiles(filteredData);
         return;
     }
 
@@ -278,6 +281,9 @@ function createChart() {
 
     // Create legend
     createLegend();
+
+    // Now render insight tiles after legend is rendered and DOM is ready
+    renderInsightTiles(filteredData);
 
     // Add click handler to SVG to reset selection when clicking empty space
     svg.on('click', function(event) {
@@ -666,3 +672,125 @@ window.addEventListener('load', () => {
         });
     }
 });
+
+// --- INSIGHT TILES COMPONENT ---
+let insightTilesFadeTimeout = null;
+function renderInsightTiles(data) {
+    let container = document.getElementById('insight-tiles');
+    if (!container) {
+        setTimeout(() => renderInsightTiles(data), 100);
+        return;
+    }
+
+    // Fade out old tiles
+    if (insightTilesFadeTimeout) clearTimeout(insightTilesFadeTimeout);
+    container.classList.remove('insight-fade-in');
+    container.classList.add('insight-fade-out');
+
+    insightTilesFadeTimeout = setTimeout(() => {
+        // --- DATA LOGIC ---
+        // 1. Top Jurisdiction
+        let topJur = null;
+        let topJurTotal = 0;
+        if (data.length > 0) {
+            topJur = data.reduce((a, b) => (a.total > b.total ? a : b));
+            topJurTotal = topJur.total;
+        }
+
+        // 2. Camera vs Police Balance (percentages, all selected)
+        let totalCamera = 0, totalPolice = 0, totalAll = 0;
+        data.forEach(d => {
+            totalCamera += d.camera;
+            totalPolice += d.police;
+            totalAll += d.total;
+        });
+        let pctCamera = totalAll > 0 ? (totalCamera / totalAll * 100) : 0;
+        let pctPolice = totalAll > 0 ? (totalPolice / totalAll * 100) : 0;
+
+        // 3. Distribution Pattern: count states with >25% police fines
+        const policeHeavyStates = data.filter(d => d.total > 0 && (d.police / d.total) > 0.25);
+        const policeHeavyCount = policeHeavyStates.length;
+
+        // 4. High-Level Trend Summary (narrative, not numbers)
+        let trendSummary = '';
+        if (data.length === 0) {
+            trendSummary = 'No data selected.';
+        } else if (pctPolice > 70 && policeHeavyCount === data.length) {
+            trendSummary = 'Enforcement is broadly uniform across Australia, but dominated by police rather than automated cameras in the current selection.';
+        } else if (pctCamera > 70) {
+            trendSummary = 'Automated camera enforcement dominates in the current selection.';
+        } else if (policeHeavyCount > 1 && pctPolice > 60) {
+            trendSummary = 'Most jurisdictions rely on police for enforcement, with little camera presence.';
+        } else if (pctCamera > 40 && pctCamera < 60) {
+            trendSummary = 'Enforcement is balanced between cameras and police.';
+        } else {
+            trendSummary = 'Enforcement patterns are mixed across selected jurisdictions.';
+        }
+
+        // --- ICONS (SVG, monochrome/pastel, minimal) ---
+        const icons = {
+            trophy: `<svg width="32" height="32" fill="none" viewBox="0 0 32 32"><rect width="32" height="32" rx="16" fill="#f7b731" fill-opacity="0.12"/><path d="M16 21c3.314 0 6-2.686 6-6V8H10v7c0 3.314 2.686 6 6 6Zm0 0v3m-4 0h8" stroke="#f7b731" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+            camera: `<svg width="32" height="32" fill="none" viewBox="0 0 32 32"><rect width="32" height="32" rx="16" fill="#FFAEB4" fill-opacity="0.13"/><rect x="8" y="12" width="16" height="10" rx="3" stroke="#FFAEB4" stroke-width="1.6"/><circle cx="16" cy="17" r="3" stroke="#FFAEB4" stroke-width="1.6"/><rect x="13" y="9" width="6" height="3" rx="1.5" stroke="#FFAEB4" stroke-width="1.6"/></svg>`,
+            police: `<svg width="32" height="32" fill="none" viewBox="0 0 32 32"><rect width="32" height="32" rx="16" fill="#BEDEDA" fill-opacity="0.13"/><path d="M16 8l7 4v3c0 5.523-3.134 10-7 10s-7-4.477-7-10v-3l7-4Z" stroke="#BEDEDA" stroke-width="1.6"/><circle cx="16" cy="17" r="2" stroke="#BEDEDA" stroke-width="1.6"/></svg>`,
+            trend: `<svg width="32" height="32" fill="none" viewBox="0 0 32 32"><rect width="32" height="32" rx="16" fill="#4a5f7f" fill-opacity="0.10"/><path d="M8 20l5-5 4 4 7-7" stroke="#4a5f7f" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="8" cy="20" r="1.5" fill="#4a5f7f"/><circle cx="13" cy="15" r="1.5" fill="#4a5f7f"/><circle cx="17" cy="19" r="1.5" fill="#4a5f7f"/><circle cx="24" cy="12" r="1.5" fill="#4a5f7f"/></svg>`
+        };
+
+        // --- HTML ---
+        container.innerHTML = `
+            <div class="insight-tile">
+                <div class="insight-icon trophy">${icons.trophy}</div>
+                <div class="insight-title-row">
+                    <span class="insight-title">Top Jurisdiction</span>
+                </div>
+                <div class="insight-value">${topJur ? topJur.jurisdiction : '—'}</div>
+                <div class="insight-desc">${topJur ? d3.format('.2s')(topJurTotal) + ' total fines' : ''}</div>
+                <div class="insight-desc" style="font-size:0.97rem;color:#6B7280;margin-top:4px;">Highest enforcement volume</div>
+            </div>
+            <div class="insight-tile">
+                <div class="insight-icon camera">${icons.camera}</div>
+                <div class="insight-title-row">
+                    <span class="insight-dot camera"></span>
+                    <span class="insight-dot police"></span>
+                    <span class="insight-title">Camera vs Police Balance</span>
+                </div>
+                <div class="insight-value camera" style="font-size:1.1rem;">
+                    Camera: ${isNaN(pctCamera) ? '—' : pctCamera.toFixed(1) + '%'}<br>
+                    Police: ${isNaN(pctPolice) ? '—' : pctPolice.toFixed(1) + '%'
+                }</div>
+                <div class="insight-desc" style="font-size:0.97rem;color:#6B7280;margin-top:4px;">
+                    Enforcement is police-heavy among selected data
+                </div>
+            </div>
+            <div class="insight-tile">
+                <div class="insight-icon police">${icons.police}</div>
+                <div class="insight-title-row">
+                    <span class="insight-dot police"></span>
+                    <span class="insight-title">Distribution Pattern</span>
+                </div>
+                <div class="insight-value police">${policeHeavyCount} state${policeHeavyCount === 1 ? '' : 's'}</div>
+                <div class="insight-desc">${policeHeavyCount === 1
+                    ? 'with >25% police fines'
+                    : 'with >25% police fines'
+                }</div>
+                <div class="insight-desc" style="font-size:0.97rem;color:#6B7280;margin-top:4px;">
+                    Police enforcement is high across nearly all jurisdictions
+                </div>
+            </div>
+            <div class="insight-tile">
+                <div class="insight-icon trend">${icons.trend}</div>
+                <div class="insight-title-row">
+                    <span class="insight-title">High-Level Trend Summary</span>
+                </div>
+                <div class="insight-desc" style="font-size:1.05rem;font-weight:500;">
+                    ${trendSummary}
+                </div>
+            </div>
+        `;
+
+        // Fade in new tiles
+        container.classList.remove('insight-fade-out');
+        // Force reflow for transition
+        void container.offsetWidth;
+        container.classList.add('insight-fade-in');
+    }, 150);
+}

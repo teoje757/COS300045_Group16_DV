@@ -11,7 +11,7 @@ let svg;
 let dataMap = {};
 
 // Dimensions
-const w = 850;
+const w = 1100; // Increased from 850 to match card width
 const h = 700;
 
 // Projection

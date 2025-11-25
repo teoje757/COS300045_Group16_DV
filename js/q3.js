@@ -70,6 +70,8 @@ function init() {
     initialized = true;
     console.log('Initializing visualization...');
     createTooltip();
+    // Show animated impact banner immediately (loading state)
+    renderImpactBanner(true);
     loadData();
     setupEventListeners();
 }
@@ -121,6 +123,7 @@ function loadData() {
             updateDynamicTitle();
             createChart();
             createLegend();
+            renderImpactBanner(); // <-- update banner with real data
         }).catch(error => {
             console.error('Error loading data from', path, ':', error);
             currentPathIndex++;
@@ -173,7 +176,9 @@ function createChart() {
     if (!container.clientWidth || container.clientWidth < 100) {
         // If container not ready, wait a bit and retry
         console.log('Container not ready, retrying...');
-        setTimeout(createChart, 50);
+        setTimeout(() => {
+            createChart();
+        }, 50);
         return;
     }
     
@@ -311,7 +316,376 @@ function createChart() {
     }
 }
 
-// Draw horizontal bars
+// --- NEW: Utility for enforcement tiers ---
+function getEnforcementTier(rate) {
+    if (rate >= 120) return { tier: "High", color: "#e74c3c" };
+    if (rate >= 60) return { tier: "Medium", color: "#f1c40f" };
+    return { tier: "Low", color: "#27ae60" };
+}
+
+// --- IMPROVED: Impact Banner ---
+// Accepts an optional "loading" parameter
+function renderImpactBanner(loading = false) {
+    const banner = d3.select("#impact-banner");
+    banner.selectAll("*").remove();
+
+    // Show loading/placeholder banner if loading or data not yet available
+    if (loading || (!filteredData.length && (!data || !data.length))) {
+        banner.append("div")
+            .attr("class", "impact-banner")
+            .style("background", "#f9fafb")
+            .style("border-radius", "10px")
+            .style("padding", "22px 32px")
+            .style("box-shadow", "0 2px 8px rgba(52,152,219,0.08)")
+            .style("display", "flex")
+            .style("align-items", "center")
+            .style("gap", "32px")
+            .append("span")
+            .style("font-size", "1.1rem")
+            .style("color", "#3498db")
+            .style("font-weight", "500")
+            .html(`<span class="spinner" style="margin-right:10px;display:inline-block;width:18px;height:18px;border:3px solid #b6d4ef;border-top:3px solid #3498db;border-radius:50%;animation:spin 1s linear infinite;vertical-align:middle;"></span>Loading enforcement data...`);
+        // Add spinner CSS if not present
+        if (!document.getElementById('impact-spinner-style')) {
+            const style = document.createElement('style');
+            style.id = 'impact-spinner-style';
+            style.innerHTML = `@keyframes spin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}`;
+            document.head.appendChild(style);
+        }
+        return;
+    }
+
+    if (!filteredData.length) {
+        banner.append("div")
+            .attr("class", "impact-banner")
+            .style("background", "#f9fafb")
+            .style("border-radius", "10px")
+            .style("padding", "22px 32px")
+            .style("box-shadow", "0 2px 8px rgba(52,152,219,0.08)")
+            .style("display", "flex")
+            .style("align-items", "center")
+            .style("gap", "32px")
+            .append("span")
+            .style("font-size", "1.1rem")
+            .style("color", "#b91c1c")
+            .style("font-weight", "500")
+            .text("No data to display for the current selection.");
+        return;
+    }
+
+    // Get filtered jurisdictions
+    const jurisdictions = Array.from(new Set(filteredData.map(d => d.jurisdiction)));
+    const isSingle = jurisdictions.length === 1;
+    const avg = d3.mean(filteredData, d => d.finesPer10k) || 0;
+    const years = Array.from(new Set(filteredData.map(d => d.year)));
+    const minYear = Math.min(...years);
+    const maxYear = Math.max(...years);
+
+    const container = banner.append("div")
+        .attr("class", "impact-banner")
+        .style("background", "#f9fafb")
+        .style("border-radius", "10px")
+        .style("padding", "22px 32px")
+        .style("box-shadow", "0 2px 8px rgba(52,152,219,0.08)")
+        .style("display", "flex")
+        .style("align-items", "center")
+        .style("gap", "32px");
+
+    // Animated number
+    const avgSpan = container.append("span")
+        .attr("id", "impact-avg")
+        .style("font-size", "2.2rem")
+        .style("font-weight", "700")
+        .style("color", "#3498db")
+        .text("0");
+
+    avgSpan.transition()
+        .duration(1200)
+        .tween("text", function() {
+            const i = d3.interpolate(0, avg);
+            return function(t) {
+                avgSpan.text(d3.format(".1f")(i(t)));
+            };
+        });
+
+    // Message
+    let message = "";
+    if (isSingle) {
+        const jur = jurisdictions[0];
+        message = `<b>${jur}</b> average fines per 10,000 licences (${minYear === maxYear ? minYear : minYear + "–" + maxYear})<br>
+        <span style="font-size:0.98rem; color:#6b7280; font-weight:400;">
+        This view shows only <b>${jur}</b>. Use the filters to compare with other jurisdictions.
+        </span>`;
+    } else {
+        message = `Average fines per 10,000 licences for <b>${jurisdictions.length} jurisdictions</b> (${minYear === maxYear ? minYear : minYear + "–" + maxYear})<br>
+        <span style="font-size:0.98rem; color:#6b7280; font-weight:400;">
+        This average reflects only the currently selected jurisdictions. Use the filters to focus or compare.
+        </span>`;
+    }
+
+    container.append("span")
+        .style("font-size", "1.1rem")
+        .style("color", "#374151")
+        .style("font-weight", "500")
+        .html(message);
+}
+
+// --- IMPROVED: Story Panel (narrative, unique per jurisdiction, robust for single selection) ---
+function renderStoryPanel(selectedJurisdiction = null) {
+    const panel = d3.select("#story-panel");
+    panel.selectAll("*").remove();
+
+    // Aggregate and sort data for current filter
+    const all = getAggregatedJurisdictionData();
+    if (!all.length) return;
+
+    // If only one jurisdiction is filtered, show only that jurisdiction's stats, no comparisons
+    if (all.length === 1) {
+        const d = all[0];
+        const years = d.yearRange;
+        const storyDiv = panel.append("div")
+            .attr("class", "story-panel-inner")
+            .style("opacity", 0);
+
+        storyDiv.transition().duration(400).style("opacity", 1);
+
+        storyDiv.append("div")
+            .style("font-size", "1.15rem")
+            .style("font-weight", "600")
+            .style("color", "#2d3748")
+            .style("margin-bottom", "0.5em")
+            .text(`${d.jurisdiction} (only jurisdiction selected)`);
+
+        storyDiv.append("div")
+            .style("font-size", "0.98rem")
+            .style("color", "#374151")
+            .style("margin-bottom", "0.7em")
+            .html(`Fines per 10,000: <b>${d.avgFinesPer10k.toFixed(1)}</b> &nbsp;|&nbsp; Years: <b>${years}</b>`);
+
+        const ul = storyDiv.append("ul")
+            .style("margin", "0 0 0 18px")
+            .style("padding", "0")
+            .style("color", "#4b5563")
+            .style("font-size", "0.97rem");
+        ul.append("li")
+            .text("No comparison available. Use the filters to add more jurisdictions for context.");
+        return;
+    }
+
+    // Find selected jurisdiction or default to highest
+    let jurisdictionData;
+    if (selectedJurisdiction) {
+        jurisdictionData = all.find(d => d.jurisdiction === selectedJurisdiction);
+    } else {
+        jurisdictionData = all[0];
+    }
+    if (!jurisdictionData) return;
+
+    // Key stats
+    const { jurisdiction, avgFinesPer10k } = jurisdictionData;
+    const nationalAvg = d3.mean(all, d => d.avgFinesPer10k);
+    const highest = all[0];
+    const lowest = all[all.length - 1];
+    const idx = all.findIndex(d => d.jurisdiction === jurisdiction);
+    const isHighest = jurisdiction === highest.jurisdiction;
+    const isLowest = jurisdiction === lowest.jurisdiction;
+    const isAboveAvg = avgFinesPer10k > nationalAvg;
+    const isBelowAvg = avgFinesPer10k < nationalAvg;
+    const isOutlierHigh = avgFinesPer10k > nationalAvg * 1.5;
+    const isOutlierLow = avgFinesPer10k < nationalAvg * 0.6;
+    const secondHighest = all.length > 1 ? all[1] : null;
+    const secondLowest = all.length > 1 ? all[all.length - 2] : null;
+    const nJurisdictions = all.length;
+
+    // Find trend (rising/falling/flat) for this jurisdiction
+    const allYears = data.filter(d => d.jurisdiction === jurisdiction)
+        .sort((a, b) => a.year - b.year);
+    let trend = null;
+    if (allYears.length > 2) {
+        const first = allYears[0].finesPer10k;
+        const last = allYears[allYears.length - 1].finesPer10k;
+        const delta = last - first;
+        if (Math.abs(delta) < 2) trend = "flat";
+        else if (delta > 0) trend = "rising";
+        else trend = "falling";
+    }
+
+    // Compose summary/title
+    let summary = "";
+    if (isHighest) {
+        summary = `${jurisdiction} has the highest enforcement rate among the ${nJurisdictions} jurisdictions selected.`;
+    } else if (isLowest) {
+        summary = `${jurisdiction} has the lowest enforcement rate among the ${nJurisdictions} jurisdictions selected.`;
+    } else if (isOutlierHigh) {
+        summary = `${jurisdiction} stands out with an unusually high enforcement rate among the ${nJurisdictions} jurisdictions.`;
+    } else if (isOutlierLow) {
+        summary = `${jurisdiction} is notable for its unusually low enforcement rate among the ${nJurisdictions} jurisdictions.`;
+    } else if (idx === 1) {
+        summary = `${jurisdiction} has the second-highest enforcement rate among the ${nJurisdictions} jurisdictions.`;
+    } else if (idx === all.length - 2) {
+        summary = `${jurisdiction} has the second-lowest enforcement rate among the ${nJurisdictions} jurisdictions.`;
+    } else if (isAboveAvg) {
+        summary = `${jurisdiction} is above the average among the ${nJurisdictions} jurisdictions.`;
+    } else if (isBelowAvg) {
+        summary = `${jurisdiction} is below the average among the ${nJurisdictions} jurisdictions.`;
+    } else {
+        summary = `${jurisdiction} is close to the average among the ${nJurisdictions} jurisdictions.`;
+    }
+
+    // Key stats
+    const stats = [
+        `Fines per 10,000: <b>${avgFinesPer10k.toFixed(1)}</b>`,
+        `Selection average: <b>${nationalAvg.toFixed(1)}</b>`,
+        !isHighest ? `Highest: <b>${highest.jurisdiction} (${highest.avgFinesPer10k.toFixed(1)})</b>` : null,
+        !isLowest ? `Lowest: <b>${lowest.jurisdiction} (${lowest.avgFinesPer10k.toFixed(1)})</b>` : null,
+    ].filter(Boolean);
+
+    // Build unique insights
+    const insights = [];
+
+    // 1. Outlier/position
+    if (isHighest) {
+        insights.push("This jurisdiction leads the current selection in mobile phone enforcement.");
+        if (secondHighest && avgFinesPer10k - secondHighest.avgFinesPer10k > nationalAvg * 0.2) {
+            insights.push(`The rate is substantially higher than the next highest (${secondHighest.jurisdiction}, ${secondHighest.avgFinesPer10k.toFixed(1)}), marking it as a clear outlier.`);
+        }
+    } else if (isLowest) {
+        insights.push("This is the lowest enforcement rate in the current selection.");
+        if (secondLowest && secondLowest.avgFinesPer10k - avgFinesPer10k > nationalAvg * 0.2) {
+            insights.push(`There is a significant gap to the next lowest (${secondLowest.jurisdiction}, ${secondLowest.avgFinesPer10k.toFixed(1)}).`);
+        }
+    } else if (isOutlierHigh) {
+        insights.push("This rate is much higher than most other jurisdictions in the selection.");
+    } else if (isOutlierLow) {
+        insights.push("This rate is much lower than most other jurisdictions in the selection.");
+    }
+
+    // 2. Relative to similar jurisdictions (cluster logic)
+    const clusters = {
+        east: ["NSW", "VIC", "QLD"],
+        small: ["ACT", "TAS", "NT"],
+        west: ["WA"],
+        south: ["SA"]
+    };
+    let clusterName = null;
+    for (const [name, members] of Object.entries(clusters)) {
+        if (members.includes(jurisdiction)) {
+            clusterName = name;
+            break;
+        }
+    }
+    if (clusterName) {
+        const clusterPeers = all.filter(d => clusters[clusterName].includes(d.jurisdiction) && d.jurisdiction !== jurisdiction);
+        if (clusterPeers.length) {
+            const peerAvg = d3.mean(clusterPeers, d => d.avgFinesPer10k);
+            if (Math.abs(avgFinesPer10k - peerAvg) > nationalAvg * 0.15) {
+                if (avgFinesPer10k > peerAvg) {
+                    insights.push(`Compared to similar regions (${clusters[clusterName].filter(j => j !== jurisdiction && all.some(d => d.jurisdiction === j)).join(", ")}), ${jurisdiction} has a notably higher enforcement rate.`);
+                } else {
+                    insights.push(`Compared to similar regions (${clusters[clusterName].filter(j => j !== jurisdiction && all.some(d => d.jurisdiction === j)).join(", ")}), ${jurisdiction} has a notably lower enforcement rate.`);
+                }
+            }
+        }
+    }
+
+    // 3. Trend over time
+    if (trend === "rising") {
+        insights.push("Enforcement rate has increased over time in this jurisdiction.");
+    } else if (trend === "falling") {
+        insights.push("Enforcement rate has decreased over time in this jurisdiction.");
+    } else if (trend === "flat") {
+        insights.push("Enforcement rate has remained relatively stable over time.");
+    }
+
+    // 4. If close to selection average, note that
+    if (!isHighest && !isLowest && Math.abs(avgFinesPer10k - nationalAvg) < nationalAvg * 0.08) {
+        insights.push("This rate is very close to the selection average, indicating typical enforcement intensity.");
+    }
+
+    // 5. If no unique insight, fallback
+    if (insights.length === 0) {
+        if (isAboveAvg) {
+            insights.push("This jurisdiction enforces mobile phone use while driving more strictly than most others in the selection.");
+        } else if (isBelowAvg) {
+            insights.push("This jurisdiction enforces mobile phone use while driving less strictly than most others in the selection.");
+        } else {
+            insights.push("This jurisdiction's enforcement rate is typical for the current selection.");
+        }
+    }
+
+    // Render panel
+    const storyDiv = panel.append("div")
+        .attr("class", "story-panel-inner")
+        .style("opacity", 0);
+
+    storyDiv.transition().duration(400).style("opacity", 1);
+
+    // Title/Summary
+    storyDiv.append("div")
+        .style("font-size", "1.15rem")
+        .style("font-weight", "600")
+        .style("color", "#2d3748")
+        .style("margin-bottom", "0.5em")
+        .text(summary);
+
+    // Key stats
+    storyDiv.append("div")
+        .style("font-size", "0.98rem")
+        .style("color", "#374151")
+        .style("margin-bottom", "0.7em")
+        .html(stats.join(" &nbsp;|&nbsp; "));
+
+    // Insights (bulleted)
+    const ul = storyDiv.append("ul")
+        .style("margin", "0 0 0 18px")
+        .style("padding", "0")
+        .style("color", "#4b5563")
+        .style("font-size", "0.97rem");
+    insights.slice(0, 4).forEach((txt, i) => {
+        ul.append("li")
+            .style("opacity", 0)
+            .transition()
+            .delay(350 + i * 120)
+            .duration(400)
+            .style("opacity", 1)
+            .text(txt);
+    });
+}
+
+// --- NEW: Helper to aggregate data by jurisdiction for current filter ---
+function getAggregatedJurisdictionData() {
+    const isSingleYear = yearRange.start === yearRange.end;
+    return Array.from(
+        d3.group(filteredData, d => d.jurisdiction),
+        ([jurisdiction, values]) => {
+            const avgValue = isSingleYear && values.length === 1 
+                ? values[0].finesPer10k 
+                : d3.mean(values, d => d.finesPer10k);
+            return {
+                jurisdiction,
+                avgFinesPer10k: avgValue || 0,
+                totalFines: d3.sum(values, d => d.fines),
+                dataPoints: values.length,
+                yearRange: `${d3.min(values, d => d.year)}-${d3.max(values, d => d.year)}`,
+                isSingleYear: isSingleYear
+            };
+        }
+    ).sort((a, b) => b.avgFinesPer10k - a.avgFinesPer10k);
+}
+
+// --- HOOK UP NEW COMPONENTS TO CHART EVENTS ---
+
+// Update chart with current filters
+function updateChart(selectedJurisdiction = null) {
+    filterData();
+    updateDynamicTitle();
+    createChart();
+    createLegend();
+    renderImpactBanner();
+    renderStoryPanel(selectedJurisdiction);
+}
+
+// Modify bar events to update story panel
 function drawBars(jurisdictionData) {
     const maxValue = d3.max(jurisdictionData, d => d.avgFinesPer10k);
 
@@ -345,12 +719,15 @@ function drawBars(jurisdictionData) {
             .ease(d3.easeCubicOut)
             .attr('width', d => xScale(d.avgFinesPer10k))
             .on('end', function(d, i) {
-                // Force final width to ensure it reaches exactly the right position
                 d3.select(this).attr('width', xScale(d.avgFinesPer10k));
-                // Clear animation flag when last bar finishes
+                // Only set isFirstRender to false after the last bar finishes and the container is valid
                 if (i === jurisdictionData.length - 1) {
                     isAnimating = false;
-                    isFirstRender = false;
+                    // Only set isFirstRender to false if the container is valid
+                    const container = document.getElementById('chart');
+                    if (container && container.clientWidth >= 100) {
+                        isFirstRender = false;
+                    }
                 }
             });
     } else {
@@ -402,6 +779,7 @@ function drawBars(jurisdictionData) {
             .style('opacity', 0.3);
 
         showTooltip(event, d);
+        renderStoryPanel(d.jurisdiction);
     })
     .on('mouseout', function(event, d) {
         // Reset all bars
@@ -419,12 +797,14 @@ function drawBars(jurisdictionData) {
             .attr('y', bar => yScale(bar.jurisdiction));
 
         hideTooltip();
+        renderStoryPanel();
     })
     .on('click', function(event, d) {
         // Focus on this jurisdiction only
         event.stopPropagation();
         if (isAnimating) return; // Prevent clicks during animation
         focusJurisdiction(d.jurisdiction);
+        renderStoryPanel(d.jurisdiction);
     });
 }
 
@@ -436,13 +816,40 @@ function showTooltip(event, d) {
     
     const isSingleYear = yearRange.start === yearRange.end;
     const finesLabel = isSingleYear ? 'Fines per 10K:' : 'Avg Fines per 10K:';
-    
+
+    // --- ENHANCED TOOLTIP: Add contextual, comparative, emotional framing ---
+    // Find national average and highest/lowest for context
+    const all = getAggregatedJurisdictionData();
+    const nationalAvg = d3.mean(all, d => d.avgFinesPer10k);
+    const highest = all[0];
+    const lowest = all[all.length - 1];
+    const tierInfo = getEnforcementTier(d.avgFinesPer10K);
+
+    let comparison = "";
+    if (d.jurisdiction === highest.jurisdiction) {
+        comparison = `<span style="color:#e74c3c;font-weight:600;">Highest in Australia</span>`;
+    } else if (d.jurisdiction === lowest.jurisdiction) {
+        comparison = `<span style="color:#27ae60;font-weight:600;">Lowest in Australia</span>`;
+    } else if (d.avgFinesPer10k > nationalAvg) {
+        comparison = `<span style="color:#f1c40f;font-weight:600;">Above national average</span>`;
+    } else {
+        comparison = `<span style="color:#6b7280;font-weight:600;">Below national average</span>`;
+    }
+
     tooltip.html(`
         <strong style="font-size: 16px; color: ${colorScale[d.jurisdiction]}">${d.jurisdiction}</strong><br/>
         <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.2);">
             <strong>${finesLabel}</strong> ${d.avgFinesPer10k.toFixed(1)}<br/>
             <strong>Total Fines:</strong> ${d.totalFines.toLocaleString()}<br/>
-            <strong>Year Range:</strong> ${d.yearRange}
+            <strong>Year Range:</strong> ${d.yearRange}<br/>
+            <span style="display:block;margin-top:8px;">
+                <span style="font-size:13px; color:${tierInfo.color}; font-weight:600;">${tierInfo.tier} enforcement</span>
+                &nbsp;|&nbsp; ${comparison}
+            </span>
+        </div>
+        <div style="margin-top:8px;font-size:12px;color:#b91c1c;">
+            ${d.jurisdiction === highest.jurisdiction ? "This jurisdiction leads the nation in enforcement intensity." : ""}
+            ${d.jurisdiction === lowest.jurisdiction ? "This is the lowest enforcement rate recorded." : ""}
         </div>
     `)
         .style('left', (event.pageX + 10) + 'px')
@@ -536,40 +943,22 @@ function updateChart() {
     updateDynamicTitle();
     createChart();
     createLegend();
+    renderImpactBanner();
+    renderStoryPanel();
 }
 
 // Update dynamic title based on current filters
 function updateDynamicTitle() {
     const titleElement = document.getElementById('dynamic-title');
     const subtitleElement = document.getElementById('dynamic-subtitle');
-    
-    // Year range text
-    const yearText = yearRange.start === yearRange.end 
-        ? `${yearRange.start}` 
-        : `${yearRange.start}-${yearRange.end}`;
-    
-    // Jurisdiction text
-    const numJurisdictions = activeJurisdictions.size;
-    const totalJurisdictions = Object.keys(colorScale).length;
-    
-    let jurisdictionText = '';
-    if (numJurisdictions === 0) {
-        jurisdictionText = 'No jurisdictions selected';
-    } else if (numJurisdictions === totalJurisdictions) {
-        jurisdictionText = 'All jurisdictions';
-    } else if (numJurisdictions === 1) {
-        jurisdictionText = Array.from(activeJurisdictions)[0];
-    } else if (numJurisdictions <= 3) {
-        jurisdictionText = Array.from(activeJurisdictions).join(', ');
-    } else {
-        jurisdictionText = `${numJurisdictions} jurisdictions`;
+
+    // Always use the Q3-specific plain-language title and subtitle
+    if (titleElement) {
+        titleElement.textContent = "Which Parts of Australia Have the Highest Mobile Phone Enforcement Rates?";
     }
-    
-    // Update title without year range
-    titleElement.textContent = `Fines per 10,000 Driver Licenses by Jurisdiction`;
-    
-    // Update subtitle with jurisdiction and year range
-    subtitleElement.textContent = `${jurisdictionText} • ${yearText}`;
+    if (subtitleElement) {
+        subtitleElement.textContent = "This page lets you compare how strictly each state and territory enforces mobile phone use while driving. Explore the chart below to see which jurisdictions issue the most fines per 10,000 licensed drivers, and use the filters to focus on specific years or regions.";
+    }
 }
 
 // Setup event listeners
