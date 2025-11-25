@@ -1,4 +1,5 @@
 // ======================================================
+// q5.js - COMPLETE FILE
 // Australia State Heatmap – Fully Fixed + Rewritten
 // ======================================================
 
@@ -276,4 +277,23 @@ d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", function (error, csvData
             });
         }
     );
+});
+
+// ======================================================
+// NAVIGATION AUTO-DETECTION
+// ======================================================
+document.addEventListener('DOMContentLoaded', function() {
+    // Get current page filename
+    const currentPage = window.location.pathname.split('/').pop().replace('.html', '') || 'index';
+    
+    // Remove all active classes
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.remove('active');
+    });
+    
+    // Add active class to current page
+    const activeItem = document.querySelector(`[data-page="${currentPage}"]`);
+    if (activeItem) {
+        activeItem.classList.add('active');
+    }
 });
