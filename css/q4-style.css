@@ -8,11 +8,11 @@ body {
     position: relative;
 }
 
-/* Navigation Buttons */
-.back-btn,
+/* Next Button */
 .next-btn {
     position: absolute;
     top: 20px;
+    right: 20px;
     width: 45px;
     height: 45px;
     border-radius: 50%;
@@ -27,19 +27,9 @@ body {
     transition: all 0.3s;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
     z-index: 10;
-    text-decoration: none;
-    font-size: 22px;
-    color: #4a5568;
-    transition: all 0.3s;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
-    z-index: 10;
 }
 
-.back-btn { left: 20px; }
-.next-btn { right: 20px; }
-
-.back-arrow,
-.next-arrow {
+.back-arrow, .next-arrow {
     display: block;
 }
 
