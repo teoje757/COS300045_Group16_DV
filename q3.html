@@ -21,24 +21,34 @@
                 <span class="loading-spinner"></span>
             </a>
             
-            <!-- Simple Title -->
-            <div class="chart-title-container">
-                <h2 id="dynamic-title" class="chart-title">Fines per 10,000 Driver Licenses by Jurisdiction</h2>
-                <p id="dynamic-subtitle" class="chart-subtitle">All jurisdictions • 2010-2024</p>
+            <!-- Consistent Header (matches Q1/Q2, with Q3-specific text) -->
+            <div class="header" style="text-align:center; margin-bottom: 30px;">
+                <h1 id="dynamic-title" class="main-title" style="margin-bottom: 8px;">
+                    Which Parts of Australia Have the Highest Mobile Phone Enforcement Rates?
+                </h1>
+                <div id="dynamic-subtitle" class="subtitle" style="font-size: 1.05rem; color: #6b7280;">
+                    This page lets you compare how strictly each state and territory enforces mobile phone use while driving. Explore the chart below to see which jurisdictions issue the most fines per 10,000 licensed drivers, and use the filters to focus on specific years or regions.
+                </div>
             </div>
+            <!-- End Consistent Header -->
+
+
+            <!-- Impact Banner (animated, above chart) -->
+            <div id="impact-banner" style="margin-bottom: 24px;"></div>
 
             <!-- Filter Controls -->
             <div class="controls">
                 <div class="controls-header">
                     <h3>Filters <span id="toggle-filters" class="toggle-arrow">›</span></h3>
                 </div>
-                
                 <div id="filters-content" class="filters-content" style="display: none;">
                     <div class="filter-section">
                         <div class="filter-header">
                             <label>Year Range</label>
                         </div>
                         <div class="year-slider-container">
+                            <!-- Timeline slider (D3 will render here) -->
+                            <div id="timeline-slider" style="width:100%; margin-bottom: 10px;"></div>
                             <div class="year-inputs">
                                 <div class="year-input-group">
                                     <label for="year-start" class="small-label">From</label>
@@ -84,7 +94,6 @@
                             </div>
                         </div>
                     </div>
-
                     <div class="filter-section">
                         <div class="filter-header">
                             <label>Jurisdictions</label>
@@ -140,34 +149,17 @@
                 </div>
             </div>
 
+            <!-- Mini-Map (D3 SVG map will render here) -->
+            <div id="mini-map" style="width:100%; max-width:400px; margin: 0 auto 24px auto;"></div>
+
             <!-- Chart Container -->
             <div id="chart"></div>
 
             <!-- Legend -->
             <div id="legend"></div>
 
-            <!-- Insights Section -->
-            <div class="insights-section">
-                <h3 class="insights-title">Key Insights</h3>
-                <div class="insights-content">
-                    <div class="insight-item">
-                        <span class="insight-icon">🏆</span>
-                        <span class="insight-text"><strong>Highest Enforcement Rate:</strong> ACT consistently shows the highest mobile-phone fine rate per 10,000 licenses, significantly exceeding other jurisdictions.</span>
-                    </div>
-                    <div class="insight-item">
-                        <span class="insight-icon">📈</span>
-                        <span class="insight-text"><strong>Regional Variation:</strong> Enforcement rates vary dramatically across jurisdictions, with up to 10x difference between highest and lowest rates, suggesting different enforcement priorities or detection capabilities.</span>
-                    </div>
-                    <div class="insight-item">
-                        <span class="insight-icon">🔍</span>
-                        <span class="insight-text"><strong>Temporal Patterns:</strong> Use the year range filter to examine how enforcement evolved over time, particularly during COVID-19 (2020-2021) when traffic patterns changed significantly.</span>
-                    </div>
-                    <div class="insight-item">
-                        <span class="insight-icon">💡</span>
-                        <span class="insight-text"><strong>Interactive Tip:</strong> Click any bar or legend item to focus on a single jurisdiction, or use checkboxes to compare specific states. Click outside the chart or press ESC to reset.</span>
-                    </div>
-                </div>
-            </div>
+            <!-- Story Panel (D3 will render here) -->
+            <div id="story-panel" style="margin: 32px 0 0 0;"></div>
         </div>
     </div>
 

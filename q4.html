@@ -15,11 +15,14 @@
                 <span class="back-arrow">←</span>
                 <span class="loading-spinner"></span>
             </a>
+            <a href="q5.html" class="next-btn" title="Next: Q5">
+                <span class="next-arrow">&#8594;</span>
+            </a>
             
             <!-- Simple Title -->
             <div class="chart-title-container">
-                <h2 class="chart-title">Fine Detection Methods by Jurisdiction (2024)</h2>
-                <p class="chart-subtitle">Camera-detected vs Police-issued Traffic Fines</p>
+                <h2 class="main-title">Fine Detection Methods by Jurisdiction (2024)</h2>
+                <p class="main-subtitle">Camera-detected vs Police-issued Traffic Fines</p>
             </div>
 
             <!-- Filter Controls -->
@@ -80,28 +83,15 @@
             <!-- Legend -->
             <div id="legend"></div>
 
-            <!-- Insights Section -->
-            <div class="insights-section">
-                <h3 class="insights-title">Key Insights</h3>
-                <div class="insights-content">
-                    <div class="insight-item">
-                        <span class="insight-icon">📷</span>
-                        <span class="insight-text"><strong>Camera Dominance:</strong> NSW leads in total enforcement volume, with camera-detected fines significantly outnumbering police-issued citations across most jurisdictions.</span>
-                    </div>
-                    <div class="insight-item">
-                        <span class="insight-icon">⚖️</span>
-                        <span class="insight-text"><strong>Detection Method Balance:</strong> The ratio of camera to police fines varies by jurisdiction, reflecting different enforcement strategies and infrastructure investments.</span>
-                    </div>
-                    <div class="insight-item">
-                        <span class="insight-icon">🚨</span>
-                        <span class="insight-text"><strong>Resource Allocation:</strong> Jurisdictions with higher camera-issued fines may indicate greater investment in automated enforcement technology, while police-heavy jurisdictions rely more on traditional traffic patrols.</span>
-                    </div>
-                    <div class="insight-item">
-                        <span class="insight-icon">💡</span>
-                        <span class="insight-text"><strong>Interactive Tip:</strong> Click any segment or legend item to isolate camera or police fines. Hover over bars to see exact counts and percentages. Click outside or press ESC to view complete data.</span>
-                    </div>
-                </div>
+            <!-- Insights Section Header -->
+            <div id="insight-tiles-header">
+                <div class="insight-header-title">Insights Summary</div>
+                <div class="insight-header-subtext">Auto-generated from selected jurisdictions</div>
+                <div class="insight-header-divider"></div>
             </div>
+
+            <!-- Insight Tiles -->
+            <div id="insight-tiles"></div>
         </div>
     </div>
 
