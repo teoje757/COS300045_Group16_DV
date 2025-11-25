@@ -111,8 +111,8 @@ body {
    Container
 ================================ */
 #container {
-    width: 100%;
-    max-width: 1600px;
+    width: 95%;
+    max-width: 1400px;
     height: 95vh;
     max-height: 900px;
     margin: 0 auto;
