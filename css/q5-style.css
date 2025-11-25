@@ -27,12 +27,14 @@ body {
 }
 
 #legendContainer {
-    margin-top: 8px;
+    margin-top: 5px;
     text-align: center;
 }
 
 #legendContainer svg {
     display: inline-block;
+    width: 250px;
+    height: 50px;
 }
 
 
@@ -80,8 +82,8 @@ p {
 
 /* Slider styling */
 #yearSlider {
-    width: 350px;
-    max-width: 70%;
+    width: 280px;
+    max-width: 60%;
     margin-top: 5px;
 }
 
