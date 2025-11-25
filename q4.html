@@ -15,7 +15,6 @@
                 <span class="back-arrow">←</span>
                 <span class="loading-spinner"></span>
             </a>
-
             <a href="q5.html" class="next-btn" title="Next to Q5">
                 <span class="next-arrow">→</span>
                 <span class="loading-spinner"></span>
@@ -98,10 +97,19 @@
     </div>
 
     <script>
-        // Add loading state to back button
-        document.querySelector('.back-btn').addEventListener('click', function(e) {
-            this.classList.add('loading');
-        });
+        // Add loading state to navigation buttons
+        const backBtn = document.querySelector('.back-btn');
+        if (backBtn) {
+            backBtn.addEventListener('click', function() {
+                this.classList.add('loading');
+            });
+        }
+        const nextBtn = document.querySelector('.next-btn');
+        if (nextBtn) {
+            nextBtn.addEventListener('click', function() {
+                this.classList.add('loading');
+            });
+        }
     </script>
     <script src="js/q4.js"></script>
 </body>
