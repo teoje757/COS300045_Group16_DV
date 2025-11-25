@@ -7,7 +7,8 @@ body {
     background-color: #f5f5f5;
     font-family: 'Lora', serif;
     font-weight: 400;
-    min-height: 100vh;
+    height: 100vh;
+    overflow: hidden;
 }
 
 /* ================================
@@ -15,15 +16,18 @@ body {
 ================================ */
 #container {
     width: 100%;
-    min-height: 100vh;
+    height: 100vh;
     margin: 0;
-    padding: 30px 40px;
+    padding: 20px 40px;
     background-color: white;
     box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 }
 
 #legendContainer {
-    margin-top: 15px;
+    margin-top: 10px;
     text-align: center;
 }
 
@@ -39,21 +43,21 @@ h1 {
     font-family: 'Poppins', sans-serif;
     font-weight: 700;
     color: #1e3a5f;
-    font-size: 42px;
-    margin-bottom: 10px;
+    font-size: 36px;
+    margin: 10px 0;
     text-align: center;
 }
 
 p {
-    font-size: 16px;
-    margin: 15px 0;
+    font-size: 14px;
+    margin: 8px 0;
     color: #444;
     text-align: center;
 }
 
 .source-note {
-    margin-top: 25px;
-    font-size: 14px;
+    margin-top: 10px;
+    font-size: 12px;
     color: #666;
     text-align: center;
 }
@@ -62,16 +66,16 @@ p {
    Controls
 ================================ */
 #controls {
-    margin: 25px 0;
+    margin: 15px 0;
     text-align: center;
 }
 
 #yearDisplay {
     font-family: 'Poppins', sans-serif;
-    font-size: 26px;
+    font-size: 22px;
     font-weight: 700;
     color: #1e3a5f;
-    margin: 15px 0;
+    margin: 10px 0;
 }
 
 /* Slider styling */
@@ -112,11 +116,15 @@ button:disabled {
 #svganchor {
     display: flex;
     justify-content: center;
-    margin: 20px 0;
+    align-items: center;
+    flex: 1;
+    overflow: hidden;
 }
 
 svg {
     background-color: white;
+    max-width: 100%;
+    max-height: 100%;
 }
 
 .state-path {
