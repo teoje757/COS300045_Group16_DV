@@ -88,9 +88,9 @@ header {
 }
 
 main {
-    max-width: 1200px;
-    margin: 2rem auto;
-    padding: 0 1rem;
+    max-width: none;
+    margin: 0;
+    padding: 0;
 }
 
 #visualization-container {
@@ -123,6 +123,7 @@ footer {
 
 /* Hero section styles */
 .hero {
+    min-height: 100vh;
     padding: 4rem 1rem;
     display: flex;
     align-items: center;
