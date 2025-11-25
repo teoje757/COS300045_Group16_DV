@@ -97,19 +97,13 @@
     </div>
 
     <script>
-        // Add loading state to navigation buttons
-        const backBtn = document.querySelector('.back-btn');
-        if (backBtn) {
-            backBtn.addEventListener('click', function() {
-                this.classList.add('loading');
-            });
-        }
-        const nextBtn = document.querySelector('.next-btn');
-        if (nextBtn) {
-            nextBtn.addEventListener('click', function() {
-                this.classList.add('loading');
-            });
-        }
+        // Add loading state to back and next buttons
+        document.querySelector('.back-btn').addEventListener('click', function(e) {
+            this.classList.add('loading');
+        });
+        document.querySelector('.next-btn').addEventListener('click', function(e) {
+            this.classList.add('loading');
+        });
     </script>
     <script src="js/q4.js"></script>
 </body>
