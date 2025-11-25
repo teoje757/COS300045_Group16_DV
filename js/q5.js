@@ -11,14 +11,14 @@ let svg;
 let dataMap = {};
 
 // Dimensions
-const w = 650;
-const h = 500;
+const w = 520;
+const h = 400;
 
 // Projection
 const projection = d3.geo.mercator()
     .center([132, -28])
     .translate([w / 2, h / 2])
-    .scale(750);
+    .scale(600);
 
 const path = d3.geo.path().projection(projection);
 
@@ -158,7 +158,7 @@ d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", function (error, csvData
                 .attr("text-anchor", "middle")
                 .attr("dy", ".35em")
                 .attr("transform", d => "translate(" + path.centroid(d) + ")")
-                .attr("font-size", "12px")
+                .attr("font-size", "10px")
                 .attr("font-weight", "bold")
                 .attr("fill", "#1e3a5f")
                 .text(d => {
@@ -171,8 +171,8 @@ d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", function (error, csvData
             // --------------------------------------------------
             const legendSvg = d3.select("#legendContainer")
                 .append("svg")
-                .attr("width", 250)
-                .attr("height", 50);
+                .attr("width", 200)
+                .attr("height", 40);
 
             const defs = legendSvg.append("defs");
             const gradient = defs.append("linearGradient")
@@ -186,26 +186,26 @@ d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", function (error, csvData
                 .attr("stop-color", d => d);
 
             const legend = legendSvg.append("g")
-                .attr("transform", "translate(10, 10)");
+                .attr("transform", "translate(10, 5)");
 
             legend.append("rect")
-                .attr("width", 230)
-                .attr("height", 15)
+                .attr("width", 180)
+                .attr("height", 12)
                 .style("fill", "url(#legend-gradient)")
                 .style("stroke", "#333");
 
             const legendScale = d3.scale.linear()
                 .domain([0, maxValue])
-                .range([0, 230]);
+                .range([0, 180]);
 
             const legendAxis = d3.svg.axis()
                 .scale(legendScale)
                 .orient("bottom")
-                .ticks(5)
+                .ticks(4)
                 .tickFormat(d3.format(".2s"));
 
             legend.append("g")
-                .attr("transform", "translate(0, 15)")
+                .attr("transform", "translate(0, 12)")
                 .call(legendAxis);
 
             // ======================================================
