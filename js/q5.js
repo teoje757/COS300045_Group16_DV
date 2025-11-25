@@ -1,307 +1,248 @@
-const svg = d3.select("#heatmap");
-const tooltip = d3.select("#heatmap-tooltip");
-const legendContainer = d3.select("#legend-scale");
-const annotationsEl = d3.select("#annotation-list");
+// ======================================================
+// Australia State Heatmap — Fully Fixed + Rewritten
+// ======================================================
 
-const startSelect = document.getElementById("start-year");
-const endSelect = document.getElementById("end-year");
-const focusSelect = document.getElementById("focus-jurisdiction");
-const deltaToggle = document.getElementById("delta-toggle");
-const resetBtn = document.getElementById("reset-btn");
+// Global state
+let currentYear = 2008;
+let isPlaying = false;
+let playInterval;
+let colorScale;
+let svg;
+let dataMap = {};
 
-const margin = { top: 20, right: 20, bottom: 80, left: 120 };
-const width = 960;
-const height = 560;
-const chartWidth = width - margin.left - margin.right;
-const chartHeight = height - margin.top - margin.bottom;
+// Dimensions
+const w = 850;
+const h = 700;
 
-svg.attr("viewBox", `0 0 ${width} ${height}`);
+// Projection
+const projection = d3.geo.mercator()
+    .center([132, -28])
+    .translate([w / 2, h / 2])
+    .scale(1000);
 
-const chart = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
-const xAxisGroup = chart.append("g").attr("transform", `translate(0,${chartHeight})`);
-const yAxisGroup = chart.append("g");
-const cellsGroup = chart.append("g");
+const path = d3.geo.path().projection(projection);
 
-chart
-    .append("text")
-    .attr("class", "axis-label")
-    .attr("x", chartWidth / 2)
-    .attr("y", chartHeight + 60)
-    .attr("text-anchor", "middle")
-    .text("Jurisdiction (ordered west → east)");
+// Tooltip
+const tooltip = d3.select("#tooltip");
 
-chart
-    .append("text")
-    .attr("class", "axis-label")
-    .attr("x", -chartHeight / 2)
-    .attr("y", -90)
-    .attr("transform", "rotate(-90)")
-    .attr("text-anchor", "middle")
-    .text("Year");
+// Correct mapping: GeoJSON → CSV jurisdiction codes
+const geoToCsv = {
+    "New South Wales": "NSW",
+    "Victoria": "VIC",
+    "Queensland": "QLD",
+    "South Australia": "SA",
+    "Western Australia": "WA",
+    "Tasmania": "TAS",
+    "Northern Territory": "NT",
+    "Australian Capital Territory": "ACT"
+};
 
-const xScale = d3.scaleBand().paddingInner(0.1).paddingOuter(0.05);
-const yScale = d3.scaleBand().padding(0.08);
+// ======================================================
+// LOAD CSV
+// ======================================================
+d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", function (error, csvData) {
 
-// Colour-blind-safe palettes per brief (Viridis for magnitude, PRGn for change)
-const colorScale = d3.scaleSequential(d3.interpolateViridis);
-const divergingScale = d3.scaleDiverging(d3.interpolatePRGn);
-
-// Ordered categories (west → east) keep spatial reasoning consistent
-const jurisdictionOrder = ["WA", "NT", "SA", "QLD", "NSW", "ACT", "VIC", "TAS"];
-let dataset = [];
-let valueLookup = new Map();
-let years = [];
-let finesExtent = [0, 1];
-let deltaExtent = [1, -1];
-
-const formatter = d3.format(",d");
-const deltaFormatter = d3.format("+,.0f");
-
-function populateSelect(select, options) {
-    select.innerHTML = options.map((opt) => `<option value="${opt}">${opt}</option>`).join("");
-}
-
-function populateControls() {
-    populateSelect(startSelect, years);
-    populateSelect(endSelect, years);
-
-    startSelect.value = String(years[0]);
-    endSelect.value = String(years[years.length - 1]);
-
-    focusSelect.innerHTML =
-        '<option value="ALL">All states</option>' +
-        jurisdictionOrder.map((jur) => `<option value="${jur}">${jur}</option>`).join("");
-}
-
-function filterData() {
-    const startYear = Number(startSelect.value);
-    const endYear = Number(endSelect.value);
-    if (startYear > endYear) {
-        [startSelect.value, endSelect.value] = [endYear, startYear].map(String);
-    }
-
-    return dataset.filter(
-        (d) => d.year >= Number(startSelect.value) && d.year <= Number(endSelect.value)
-    );
-}
-
-function getDelta(year, jurisdiction) {
-    const currentKey = `${year}-${jurisdiction}`;
-    const prevKey = `${year - 1}-${jurisdiction}`;
-    if (!valueLookup.has(currentKey) || !valueLookup.has(prevKey)) return undefined;
-    return valueLookup.get(currentKey) - valueLookup.get(prevKey);
-}
-
-function updateScales(filtered) {
-    const filteredYears = Array.from(new Set(filtered.map((d) => d.year))).sort((a, b) => b - a);
-    yScale.domain(filteredYears).range([0, chartHeight]);
-    xScale.domain(jurisdictionOrder).range([0, chartWidth]);
-}
-
-function updateLegend(isDelta) {
-    legendContainer.html("");
-
-    const stops = isDelta ? [-1, -0.5, 0, 0.5, 1] : [0, 0.25, 0.5, 0.75, 1];
-    const scale = isDelta ? divergingScale : colorScale;
-    const domain = scale.domain();
-    const values = stops.map((s, i) => {
-        if (isDelta) {
-            const [min, mid, max] = domain;
-            return i === stops.length - 1
-                ? max
-                : min + ((max - min) * (s + 1)) / 2; // map -1..1 to domain
-        }
-        return domain[0] + (domain[1] - domain[0]) * s;
-    });
-
-    const gradient = legendContainer
-        .append("div")
-        .attr("class", "legend-bar")
-        .style(
-            "background",
-            `linear-gradient(90deg, ${values
-                .map((v) => scale(v))
-                .join(",")})`
-        );
-
-    const stopsRow = legendContainer.append("div").attr("class", "legend-stops");
-    values.forEach((val, idx) => {
-        stopsRow.append("span").text(isDelta ? deltaFormatter(val) : formatter(val));
-    });
-
-    legendContainer
-        .append("p")
-        .attr("class", "legend-caption")
-        .text(isDelta ? "Purple = decline, Green = increase" : "Light = few fines, Dark = many fines");
-}
-
-function updateAnnotations(filtered) {
-    const focus = focusSelect.value;
-    const relevant = filtered.filter((d) => (focus === "ALL" ? true : d.jurisdiction === focus));
-    const topCells = relevant
-        .map((d) => ({
-            ...d,
-            delta: getDelta(d.year, d.jurisdiction)
-        }))
-        .sort((a, b) => b.fines - a.fines)
-        .slice(0, 3);
-
-    annotationsEl.html("");
-    if (!topCells.length) {
-        annotationsEl.append("li").text("No data for the selected filters.");
+    if (error) {
+        console.error("Error loading CSV:", error);
+        document.getElementById("loading").innerHTML = "Error loading CSV.";
         return;
     }
 
-    topCells.forEach((cell) => {
-        const narrative =
-            cell.delta === undefined
-                ? "first available year"
-                : cell.delta > 0
-                ? "still climbing"
-                : cell.delta < 0
-                ? "cooling after spike"
-                : "holding steady";
-        annotationsEl
-            .append("li")
-            .text(
-                `${cell.jurisdiction} ${cell.year}: ${formatter(cell.fines)} fines ${cell.delta !== undefined ? `(${deltaFormatter(cell.delta)} vs ${cell.year - 1})` : ""} — ${narrative}`
-            );
+    // Build lookup map: dataMap[year][jurisdiction] = fines
+    csvData.forEach(d => {
+        const year = +d.YEAR;
+        const state = d.JURISDICTION.trim();
+        const value = +d.FINES;
+
+        if (!dataMap[year]) dataMap[year] = {};
+        dataMap[year][state] = value;
     });
-}
 
-function updateChart() {
-    const filtered = filterData();
-    updateScales(filtered);
+    const allValues = csvData.map(d => +d.FINES);
+    const maxValue = d3.max(allValues);
 
-    const isDelta = deltaToggle.checked;
-    const scale = isDelta ? divergingScale : colorScale;
+    // Color scale
+    colorScale = d3.scale.linear()
+        .domain([0, maxValue])
+        .range(["#ffffcc", "#800026"])
+        .interpolate(d3.interpolateHcl);
 
-    xAxisGroup
-        .transition()
-        .duration(500)
-        .call(d3.axisBottom(xScale))
-        .selectAll("text")
-        .attr("transform", "translate(0,5)")
-        .style("text-anchor", "middle");
+    // Create SVG
+    svg = d3.select("#svganchor")
+        .append("svg")
+        .attr("width", w)
+        .attr("height", h);
 
-    yAxisGroup.transition().duration(500).call(d3.axisLeft(yScale).tickFormat(d3.format("d")));
+    // Lookup helper
+    function getValue(stateCode, year) {
+        if (!stateCode) return 0;
+        if (dataMap[year] && dataMap[year][stateCode] !== undefined) {
+            return dataMap[year][stateCode];
+        }
+        return 0;
+    }
 
-    const focus = focusSelect.value;
+    // ======================================================
+    // UPDATE MAP COLOURS
+    // ======================================================
+    function updateMap(year) {
+        currentYear = year;
+        document.getElementById("yearDisplay").textContent = year;
+        document.getElementById("yearSlider").value = year;
 
-    const cells = cellsGroup.selectAll("rect.cell").data(filtered, (d) => `${d.year}-${d.jurisdiction}`);
+        svg.selectAll(".state-path")
+            .transition()
+            .duration(300)
+            .attr("fill", function (d) {
+                const rawName = d.properties.STATE_NAME || d.properties.STE_NAME16;
+                const stateCode = geoToCsv[rawName];
+                const value = getValue(stateCode, year);
+                return colorScale(value);
+            });
+    }
 
-    cells
-        .join(
-            (enter) =>
-                enter
-                    .append("rect")
-                    .attr("class", "cell")
-                    .attr("x", (d) => xScale(d.jurisdiction))
-                    .attr("y", (d) => yScale(d.year))
-                    .attr("width", xScale.bandwidth())
-                    .attr("height", yScale.bandwidth())
-                    .attr("rx", 4)
-                    .attr("ry", 4)
-                    .attr("fill", "#f0f4fb")
-                    .attr("opacity", 0)
-                    .call((enterSel) =>
-                        enterSel
-                            .transition()
-                            .duration(600)
-                            .attr("opacity", 1)
-                    ),
-            (update) =>
-                update.call((updateSel) =>
-                    updateSel
-                        .transition()
-                        .duration(600)
-                        .attr("x", (d) => xScale(d.jurisdiction))
-                        .attr("y", (d) => yScale(d.year))
-                        .attr("width", xScale.bandwidth())
-                        .attr("height", yScale.bandwidth())
-                ),
-            (exit) =>
-                exit.call((exitSel) =>
-                    exitSel
-                        .transition()
-                        .duration(300)
-                        .attr("opacity", 0)
-                        .remove()
-                )
-        )
-        .attr("stroke-width", (d) => (focus === d.jurisdiction ? 2 : 1))
-        .attr("stroke", (d) => (focus === d.jurisdiction ? "#0f6ed6" : "rgba(32,42,56,0.15)"))
-        .transition()
-        .duration(600)
-        .attr("fill", (d) => {
-            const key = `${d.year}-${d.jurisdiction}`;
-            const val = isDelta ? getDelta(d.year, d.jurisdiction) : valueLookup.get(key);
-            if (val === undefined) return "#dfe6ef";
-            return scale(val);
-        })
-        .attr("opacity", (d) => (focus === "ALL" || focus === d.jurisdiction ? 1 : 0.35));
+    // Make updateMap accessible globally for controls
+    window.updateMap = updateMap;
 
-    cellsGroup
-        .selectAll("rect.cell")
-        .on("mousemove", (event, d) => {
-            const key = `${d.year}-${d.jurisdiction}`;
-            const value = valueLookup.get(key);
-            const delta = getDelta(d.year, d.jurisdiction);
-            tooltip
-                .style("opacity", 1)
-                .style("left", `${event.pageX + 15}px`)
-                .style("top", `${event.pageY - 15}px`)
-                .html(
-                    `<strong>${d.jurisdiction} · ${d.year}</strong><br>` +
-                        `${formatter(value)} fines` +
-                        (delta !== undefined ? `<br>${deltaFormatter(delta)} vs ${d.year - 1}` : "")
-                );
-        })
-        .on("mouseleave", () => tooltip.style("opacity", 0));
+    // ======================================================
+    // LOAD GEOJSON
+    // ======================================================
+    d3.json("https://raw.githubusercontent.com/tonywr71/GeoJson-Data/master/australian-states.json",
+        function (geoError, json) {
 
-    updateLegend(isDelta);
-    updateAnnotations(filtered);
-}
+            if (geoError) {
+                console.error("Error loading GeoJSON:", geoError);
+                document.getElementById("loading").innerHTML = "Error loading map data.";
+                return;
+            }
 
-function attachEvents() {
-    // Filters provide user agency (year, jurisdiction) without exposing row-level data
-    [startSelect, endSelect, focusSelect].forEach((el) =>
-        el.addEventListener("change", () => updateChart())
+            document.getElementById("loading").style.display = "none";
+
+            // --------------------------------------------------
+            // DRAW STATES
+            // --------------------------------------------------
+            svg.selectAll("path")
+                .data(json.features)
+                .enter()
+                .append("path")
+                .attr("class", "state-path")
+                .attr("d", path)
+                .attr("fill", function (d) {
+                    const rawName = d.properties.STATE_NAME || d.properties.STE_NAME16;
+                    const stateCode = geoToCsv[rawName];
+                    const value = getValue(stateCode, currentYear);
+                    return colorScale(value);
+                })
+                .on("mouseover", function (d) {
+                    const rawName = d.properties.STATE_NAME || d.properties.STE_NAME16;
+                    const stateCode = geoToCsv[rawName];
+                    const value = getValue(stateCode, currentYear);
+
+                    tooltip.style("opacity", 1)
+                        .html(`<strong>${rawName}</strong><br>Year: ${currentYear}<br>Fines: ${value.toLocaleString()}`);
+                })
+                .on("mousemove", () => {
+                    tooltip.style("left", (d3.event.pageX + 10) + "px")
+                        .style("top", (d3.event.pageY - 28) + "px");
+                })
+                .on("mouseout", () => tooltip.style("opacity", 0));
+
+            // --------------------------------------------------
+            // STATE LABELS
+            // --------------------------------------------------
+            svg.selectAll(".state-label")
+                .data(json.features)
+                .enter()
+                .append("text")
+                .attr("class", "state-label")
+                .attr("text-anchor", "middle")
+                .attr("dy", ".35em")
+                .attr("transform", d => "translate(" + path.centroid(d) + ")")
+                .attr("font-size", "14px")
+                .attr("font-weight", "bold")
+                .attr("fill", "#333")
+                .text(d => {
+                    const rawName = d.properties.STATE_NAME || d.properties.STE_NAME16;
+                    return geoToCsv[rawName];
+                });
+
+            // --------------------------------------------------
+            // LEGEND BELOW SLIDER
+            // --------------------------------------------------
+            const legendSvg = d3.select("#legendContainer")
+                .append("svg")
+                .attr("width", 320)
+                .attr("height", 60);
+
+            const defs = legendSvg.append("defs");
+            const gradient = defs.append("linearGradient")
+                .attr("id", "legend-gradient");
+
+            gradient.selectAll("stop")
+                .data(colorScale.range())
+                .enter()
+                .append("stop")
+                .attr("offset", (d, i) => i / (colorScale.range().length - 1))
+                .attr("stop-color", d => d);
+
+            const legend = legendSvg.append("g")
+                .attr("transform", "translate(10, 10)");
+
+            legend.append("rect")
+                .attr("width", 300)
+                .attr("height", 20)
+                .style("fill", "url(#legend-gradient)")
+                .style("stroke", "#333");
+
+            const legendScale = d3.scale.linear()
+                .domain([0, maxValue])
+                .range([0, 300]);
+
+            const legendAxis = d3.svg.axis()
+                .scale(legendScale)
+                .orient("bottom")
+                .ticks(5)
+                .tickFormat(d3.format(".2s"));
+
+            legend.append("g")
+                .attr("transform", "translate(0, 20)")
+                .call(legendAxis);
+
+            // ======================================================
+            // SLIDER + PLAY CONTROLS
+            // ======================================================
+            document.getElementById("yearSlider").addEventListener("input", function () {
+                if (isPlaying) stopPlay();
+                updateMap(+this.value);
+            });
+
+            function startPlay() {
+                isPlaying = true;
+                document.getElementById("playBtn").textContent = "Pause";
+
+                playInterval = setInterval(() => {
+                    if (currentYear < 2024) {
+                        updateMap(currentYear + 1);
+                    } else {
+                        updateMap(2008);
+                    }
+                }, 1000);
+            }
+
+            function stopPlay() {
+                isPlaying = false;
+                document.getElementById("playBtn").textContent = "Play";
+                clearInterval(playInterval);
+            }
+
+            document.getElementById("playBtn").addEventListener("click", () => {
+                isPlaying ? stopPlay() : startPlay();
+            });
+
+            document.getElementById("resetBtn").addEventListener("click", () => {
+                stopPlay();
+                updateMap(2008);
+            });
+        }
     );
-    deltaToggle.addEventListener("change", () => updateChart());
-    resetBtn.addEventListener("click", () => {
-        startSelect.value = String(years[0]);
-        endSelect.value = String(years[years.length - 1]);
-        focusSelect.value = "ALL";
-        deltaToggle.checked = false;
-        updateChart();
-    });
-}
-
-d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", (d) => ({
-    year: +d.YEAR,
-    jurisdiction: d.JURISDICTION,
-    fines: +d.FINES
-}))
-    .then((data) => {
-        dataset = data.sort((a, b) => d3.ascending(a.year, b.year));
-        years = Array.from(new Set(dataset.map((d) => d.year))).sort((a, b) => a - b);
-        finesExtent = d3.extent(dataset, (d) => d.fines);
-        valueLookup = new Map(dataset.map((d) => [`${d.year}-${d.jurisdiction}`, d.fines]));
-
-        const deltas = dataset
-            .map((d) => getDelta(d.year, d.jurisdiction))
-            .filter((v) => Number.isFinite(v));
-        deltaExtent = d3.extent(deltas.length ? deltas : [0, 1]);
-
-        colorScale.domain(finesExtent);
-        divergingScale.domain([deltaExtent[0], 0, deltaExtent[1]]);
-        populateControls();
-        attachEvents();
-        updateChart();
-    })
-    .catch((error) => {
-        console.error("Failed to load Q5 CSV", error);
-        annotationsEl.html("<li>Unable to load data. Please check the CSV path.</li>");
-    });
-
+});

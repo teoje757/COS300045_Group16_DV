@@ -1,165 +1,56 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Q5 · Mobile Phone Enforcement Heatmap</title>
+    <meta charset="utf-8">
+    <title>Australia Heatmap</title>
+
+    <!-- Roboto Font -->
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,700" rel="stylesheet">
+
+    <!-- D3 Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
+
+    <!-- Styles -->
     <link rel="stylesheet" href="css/q5-style.css">
 </head>
+
 <body>
-    <header class="q5-header">
-        <div class="brand">
-            <span class="brand-pill">Hands Off The Phone</span>
-            <span class="brand-title">Jurisdiction Heatmap</span>
+    <div id="container">
+        <h1>Australia Heatmap by State and Year</h1>
+        <p>
+            Interactive visualization showing mobile phone enforcement patterns by state over time.
+            Use the slider or play button to explore different years.
+        </p>
+
+        <div id="controls">
+            <button id="playBtn">Play</button>
+            <button id="resetBtn">Reset</button>
+
+            <div id="yearDisplay">2008</div>
+
+            <input type="range"
+                id="yearSlider"
+                min="2008"
+                max="2024"
+                value="2008"
+                step="1">
+
+            <!-- NEW: Legend goes here -->
+            <div id="legendContainer"></div>
         </div>
-        <nav aria-label="Page navigation">
-            <a href="index.html">Story hub</a>
-            <a href="q3.html">Temporal trends</a>
-            <a href="q4.html">Detection split</a>
-            <a href="#governance">Governance</a>
-        </nav>
-    </header>
 
-    <main>
-        <!-- Narrative arc (Context → Insight → Why It Matters) -->
-        <section class="hero" aria-labelledby="hero-title">
-            <div>
-                <p class="hero-kicker">Big idea · Cameras reshape risk geography</p>
-                <h1 id="hero-title">Camera-led enforcement pushes states through a surge → settle arc.</h1>
-                <p class="hero-lead">
-                    Compare the magnitude of mobile phone fines across Australian jurisdictions (2008–2024).
-                    The heatmap visualizes when each jurisdiction entered the spike phase and whether fines are stabilising.
-                </p>
-            </div>
-            <div class="hero-grid">
-                <article>
-                    <p class="label">Context</p>
-                    <h2>Automation multiplies visibility.</h2>
-                    <p>Cameras uncovered 5× more infringements than officer stops in rollout years.</p>
-                </article>
-                <article>
-                    <p class="label">Insight</p>
-                    <h2>Spikes predict cultural change.</h2>
-                    <p>States that peaked early (NSW, VIC) now show cooler tones, signalling long-term compliance.</p>
-                </article>
-                <article>
-                    <p class="label">Why it matters</p>
-                    <h2>Track the next hotspot.</h2>
-                    <p>Late adopters (ACT, QLD) still glow hot — targeted comms & privacy messaging are critical.</p>
-                </article>
-            </div>
-        </section>
 
-        <!-- Small multiples for glanceable comparisons (storytelling cue) -->
-        <section class="mini-multiples" aria-label="Quick comparisons">
-            <article>
-                <p class="mini-label">ACT</p>
-                <div class="mini-bar" style="--fill:0.92"></div>
-                <p class="mini-meta">+3120% fines 2023→2024</p>
-            </article>
-            <article>
-                <p class="mini-label">NSW</p>
-                <div class="mini-bar" style="--fill:0.35"></div>
-                <p class="mini-meta">−41% since first camera rollout</p>
-            </article>
-            <article>
-                <p class="mini-label">QLD</p>
-                <div class="mini-bar" style="--fill:0.58"></div>
-                <p class="mini-meta">Wave cresting, still above 70k fines</p>
-            </article>
-            <article>
-                <p class="mini-label">WA</p>
-                <div class="mini-bar" style="--fill:0.24"></div>
-                <p class="mini-meta">Later adoption keeps fines modest</p>
-            </article>
-        </section>
+        <div id="loading">Loading data...</div>
 
-        <!-- Guided controls reinforce governance + filter requirement -->
-        <section class="controls" aria-label="Heatmap controls">
-            <div class="control">
-                <label for="start-year">Start year</label>
-                <select id="start-year"></select>
-            </div>
-            <div class="control">
-                <label for="end-year">End year</label>
-                <select id="end-year"></select>
-            </div>
-            <div class="control">
-                <label for="focus-jurisdiction">Highlight jurisdiction</label>
-                <select id="focus-jurisdiction">
-                    <option value="ALL">All states</option>
-                </select>
-            </div>
-            <div class="control toggle">
-                <label>
-                    <input type="checkbox" id="delta-toggle">
-                    Show yearly change (colour diverges around zero)
-                </label>
-            </div>
-        </section>
+        <div id="svganchor"></div>
 
-        <!-- Heatmap panel follows magnitude rules: ordered axes, legend, annotations -->
-        <section class="heatmap-section" aria-labelledby="heatmap-title">
-            <div class="heatmap-header">
-                <div>
-                    <p class="panel-kicker">Magnitude heatmap</p>
-                    <h2 id="heatmap-title">Mobile phone fines by jurisdiction & year</h2>
-                    <p class="panel-subtext">Colour intensity compares fines; ordered axes keep reading consistent.</p>
-                </div>
-                <button id="reset-btn" type="button">Reset filters</button>
-            </div>
-            <div class="heatmap-wrapper">
-                <svg id="heatmap" role="img" aria-describedby="heatmap-desc"></svg>
-                <p id="heatmap-desc" class="sr-only">
-                    Heatmap showing fines per jurisdiction per year. Darker cells mean more fines. Axes list jurisdictions horizontally and years vertically.
-                </p>
-                <div id="heatmap-tooltip" class="tooltip" role="status" aria-live="polite"></div>
-            </div>
-            <div class="legend" aria-label="Colour legend">
-                <p class="legend-title">Legend</p>
-                <div id="legend-scale"></div>
-            </div>
-            <div class="annotation-panel">
-                <h3>Annotations</h3>
-                <ul id="annotation-list">
-                    <li>Loading highlights...</li>
-                </ul>
-            </div>
-        </section>
+        <div id="tooltip" class="tooltip"></div>
 
-        <!-- Callouts explain how to read & avoid chart junk -->
-        <section class="insight-callouts">
-            <article>
-                <h3>Guided reading</h3>
-                <p>Use the highlight dropdown to surface one state and follow its colour trajectory across years.</p>
-            </article>
-            <article>
-                <h3>Filters = governance</h3>
-                <p>Temporal filters allow scenario analysis without exposing any record-level data.</p>
-            </article>
-            <article>
-                <h3>Tooltips on demand</h3>
-                <p>Exact values + deltas appear only when needed, reducing clutter.</p>
-            </article>
-        </section>
+        <p class="source-note">
+            Source: Australian Bureau of Statistics | Data shows mobile phone enforcement patterns by state (2008–2024)
+        </p>
+    </div>
 
-        <section class="governance" id="governance">
-            <h2>Data governance & lineage</h2>
-            <ul>
-                <li>Source: `Q5_Mobile_phone_enforcement_patterns.csv` (state reporting, 2008–2024). Stored in <code>data/</code>.</li>
-                <li>Dictionary: Columns include `YEAR` (int, calendar year), `JURISDICTION` (categorical code), `FINES` (count of issued fines).</li>
-                <li>Privacy: Aggregated counts only; no personal identifiers. Aligns with GDPR/APP/CCPA principles.</li>
-                <li>Processing: Loaded client-side via <code>d3.csv()</code>; no data leaves the browser.</li>
-            </ul>
-        </section>
-    </main>
-
-    <footer>
-        <p>&copy; 2025 COS30045 Group 16 · Designed for colour-blind-safe magnitude comparison.</p>
-    </footer>
-
-    <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
-    <script src="js/q5.js" type="module"></script>
+    <script src="js/q5.js"></script>
 </body>
 </html>
-
