@@ -61,10 +61,10 @@ d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", function (error, csvData
     const allValues = csvData.map(d => +d.FINES);
     const maxValue = d3.max(allValues);
 
-    // Color scale - using gradient from watermelon to dragonfruit
+    // Color scale - using gradient from mint to dragonfruit
     colorScale = d3.scale.linear()
         .domain([0, maxValue])
-        .range(["#FFAEB4", "#E14C70"])
+        .range(["#BEDEDA", "#E14C70"])
         .interpolate(d3.interpolateHcl);
 
     // Create SVG
