@@ -40,10 +40,9 @@ header {
     pointer-events: none;
 }
 
-.map-background svg {
+.map-background img {
     width: 100%;
     height: auto;
-    fill: #2c5282;
 }
 
 .header-content {
