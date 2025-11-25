@@ -1,5 +1,5 @@
 // ======================================================
-// Australia State Heatmap – Fully Fixed + Rewritten
+// Australia State Heatmap — Fully Fixed + Rewritten
 // ======================================================
 
 // Global state
@@ -11,14 +11,14 @@ let svg;
 let dataMap = {};
 
 // Dimensions
-const w = 520;
-const h = 400;
+const w = 850;
+const h = 700;
 
 // Projection
 const projection = d3.geo.mercator()
     .center([132, -28])
     .translate([w / 2, h / 2])
-    .scale(600);
+    .scale(1000);
 
 const path = d3.geo.path().projection(projection);
 
@@ -61,10 +61,10 @@ d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", function (error, csvData
     const allValues = csvData.map(d => +d.FINES);
     const maxValue = d3.max(allValues);
 
-    // Color scale - using gradient from mint to dragonfruit
+    // Color scale
     colorScale = d3.scale.linear()
         .domain([0, maxValue])
-        .range(["#BEDEDA", "#E14C70"])
+        .range(["#ffffcc", "#800026"])
         .interpolate(d3.interpolateHcl);
 
     // Create SVG
@@ -158,9 +158,9 @@ d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", function (error, csvData
                 .attr("text-anchor", "middle")
                 .attr("dy", ".35em")
                 .attr("transform", d => "translate(" + path.centroid(d) + ")")
-                .attr("font-size", "10px")
+                .attr("font-size", "14px")
                 .attr("font-weight", "bold")
-                .attr("fill", "#1e3a5f")
+                .attr("fill", "#333")
                 .text(d => {
                     const rawName = d.properties.STATE_NAME || d.properties.STE_NAME16;
                     return geoToCsv[rawName];
@@ -171,8 +171,8 @@ d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", function (error, csvData
             // --------------------------------------------------
             const legendSvg = d3.select("#legendContainer")
                 .append("svg")
-                .attr("width", 200)
-                .attr("height", 40);
+                .attr("width", 320)
+                .attr("height", 60);
 
             const defs = legendSvg.append("defs");
             const gradient = defs.append("linearGradient")
@@ -186,26 +186,26 @@ d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", function (error, csvData
                 .attr("stop-color", d => d);
 
             const legend = legendSvg.append("g")
-                .attr("transform", "translate(10, 5)");
+                .attr("transform", "translate(10, 10)");
 
             legend.append("rect")
-                .attr("width", 180)
-                .attr("height", 12)
+                .attr("width", 300)
+                .attr("height", 20)
                 .style("fill", "url(#legend-gradient)")
                 .style("stroke", "#333");
 
             const legendScale = d3.scale.linear()
                 .domain([0, maxValue])
-                .range([0, 180]);
+                .range([0, 300]);
 
             const legendAxis = d3.svg.axis()
                 .scale(legendScale)
                 .orient("bottom")
-                .ticks(4)
+                .ticks(5)
                 .tickFormat(d3.format(".2s"));
 
             legend.append("g")
-                .attr("transform", "translate(0, 12)")
+                .attr("transform", "translate(0, 20)")
                 .call(legendAxis);
 
             // ======================================================
