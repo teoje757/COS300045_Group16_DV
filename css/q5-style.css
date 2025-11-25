@@ -7,7 +7,7 @@
 ================================ */
 .nav-container {
     width: 80px;
-    background: linear-gradient(180deg, #6366f1 0%, #8b5cf6 100%);
+    background: white;
     border-radius: 0 25px 25px 0;
     padding: 20px 0;
     display: flex;
@@ -45,8 +45,8 @@
 }
 
 .nav-item.active {
-    background: white;
-    color: #6366f1;
+    background: #6366f1;
+    color: white;
     box-shadow: 0 4px 15px rgba(255, 255, 255, 0.3);
 }
 
@@ -56,7 +56,7 @@
     left: -10px;
     width: 4px;
     height: 30px;
-    background: white;
+    background: #6366f1;
     border-radius: 0 4px 4px 0;
 }
 
