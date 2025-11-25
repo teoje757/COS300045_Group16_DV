@@ -61,10 +61,10 @@ d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", function (error, csvData
     const allValues = csvData.map(d => +d.FINES);
     const maxValue = d3.max(allValues);
 
-    // Color scale - using gradient from mint to dragonfruit
+    // Color scale - using gradient from watermelon to dragonfruit
     colorScale = d3.scale.linear()
         .domain([0, maxValue])
-        .range(["#BEDEDA", "#E14C70"])
+        .range(["#FFAEB4", "#E14C70"])
         .interpolate(d3.interpolateHcl);
 
     // Create SVG
@@ -167,16 +167,20 @@ d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", function (error, csvData
                 });
 
             // --------------------------------------------------
-            // LEGEND BELOW SLIDER
+            // LEGEND - TOP LEFT
             // --------------------------------------------------
             const legendSvg = d3.select("#legendContainer")
                 .append("svg")
-                .attr("width", 200)
-                .attr("height", 40);
+                .attr("width", 100)
+                .attr("height", 120);
 
             const defs = legendSvg.append("defs");
             const gradient = defs.append("linearGradient")
-                .attr("id", "legend-gradient");
+                .attr("id", "legend-gradient")
+                .attr("x1", "0%")
+                .attr("y1", "100%")
+                .attr("x2", "0%")
+                .attr("y2", "0%");
 
             gradient.selectAll("stop")
                 .data(colorScale.range())
@@ -186,26 +190,30 @@ d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", function (error, csvData
                 .attr("stop-color", d => d);
 
             const legend = legendSvg.append("g")
-                .attr("transform", "translate(10, 5)");
+                .attr("transform", "translate(10, 10)");
 
+            // Vertical rectangle for legend
             legend.append("rect")
-                .attr("width", 180)
-                .attr("height", 12)
+                .attr("width", 25)
+                .attr("height", 80)
                 .style("fill", "url(#legend-gradient)")
-                .style("stroke", "#333");
+                .style("stroke", "#333")
+                .style("stroke-width", "1px");
 
             const legendScale = d3.scale.linear()
-                .domain([0, maxValue])
-                .range([0, 180]);
+                .domain([maxValue, 0])
+                .range([0, 80]);
 
             const legendAxis = d3.svg.axis()
                 .scale(legendScale)
-                .orient("bottom")
+                .orient("right")
                 .ticks(4)
                 .tickFormat(d3.format(".2s"));
 
             legend.append("g")
-                .attr("transform", "translate(0, 12)")
+                .attr("transform", "translate(25, 0)")
+                .attr("class", "legend-axis")
+                .style("font-size", "9px")
                 .call(legendAxis);
 
             // ======================================================
