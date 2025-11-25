@@ -45,8 +45,8 @@
 }
 
 .nav-item.active {
-    background: #6366f1;
-    color: white;
+    background: white;
+    color: #6366f1;
     box-shadow: 0 4px 15px rgba(255, 255, 255, 0.3);
 }
 
