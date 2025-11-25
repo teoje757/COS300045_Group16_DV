@@ -3,109 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>COS30045 Group 16 - Data Visualization</title>
+    <title>Mobile Phone Use While Driving in Australia</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Lora:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <header class="site-header">
-        <nav class="nav nav--fullwidth">
-            <div class="nav-brand">Hands Off The Phone</div>
-            <ul class="nav-links">
-                <li><a href="index.html">Home</a></li>
-                <li><a href="q1.html">Dashboards</a></li>
-                <li><a href="q5.html">Heatmap</a></li>
-            </ul>
-        </nav>
+    <header>
+        <!-- Australia Map Background -->
+        <div class="map-background">
+            <img src="assets/australiamap.png" alt="Australia Map">
+        </div>
+
+        <div class="header-content">
+            <div class="header-label">CAMERA-LED ENFORCEMENT · HEADLINE INSIGHT</div>
+            <h1>Mobile Phone Use While Driving in Australia</h1>
+            
+            <p class="subtitle">
+                Mobile phone fines fell 8.7% (2022–2024) to 330,926, with camera detection (87.6% fines) showing 
+                initial spikes in new areas like ACT (780 per 10,000 holders) but major long-term drops in established 
+                regions - NSW down 25%, QLD down 41%- proving cameras change driver behavior.
+            </p>
+
+            <button class="cta-button" onclick="window.location.href='q1.html'">Explore more</button>
+        </div>
     </header>
 
-    <main>
-        <section class="hero hero--simple">
-            <div class="hero-content">
-                <p class="hero-kicker">Camera-led enforcement · headline insight</p>
-                <h1>Mobile Phone Use While Driving in Australia</h1>
-                <p class="hero-lead">
-                    Mobile phone fines fell 8.7% (2022–2024) to 330,926, with camera detection (87.6% fines)
-                    showing initial spikes in new areas like ACT (780 per 10,000 holders) but major long-term
-                    drops in established regions — NSW down 25%, QLD down 41% — proving cameras change driver behavior.
-                </p>
-                <div class="hero-actions">
-                    <a class="btn-primary" href="#dashboards">Explore the story</a>
-                    <a class="btn-secondary" href="q5.html">Jump to heatmap</a>
-                </div>
-            </div>
-        </section>
-
-        <section class="dashboard-grid" id="dashboards">
-            <div class="dashboard-intro">
-                <p class="section-kicker">Guided navigation</p>
-                <h2>Choose the chapter you want to dive into</h2>
-                <p>Each card focuses on a different question across the dataset. Start with the national storyline, then compare detection modes, and finish with the heatmap of mobile phone enforcement intensity.</p>
-            </div>
-            <div class="card-grid">
-                <a href="q1.html" class="dash-card">
-                    <p class="card-tag">Q1 · Overview</p>
-                    <h3>Question 1</h3>
-                    <p>Explore the first visualization in our mobile phone enforcement analysis.</p>
-                    <ul>
-                        <li>Key insights from the dataset</li>
-                        <li>Initial patterns and trends</li>
-                        <li>Foundation for deeper analysis</li>
-                    </ul>
-                    <span class="card-cta">Open Q1 dashboard →</span>
-                </a>
-                <a href="q2.html" class="dash-card">
-                    <p class="card-tag">Q2 · Analysis</p>
-                    <h3>Question 2</h3>
-                    <p>Continue the story with focused analysis of enforcement patterns.</p>
-                    <ul>
-                        <li>Comparative analysis</li>
-                        <li>Pattern identification</li>
-                        <li>Data-driven insights</li>
-                    </ul>
-                    <span class="card-cta">Open Q2 dashboard →</span>
-                </a>
-                <a href="q3.html" class="dash-card">
-                    <p class="card-tag">Q3 · Timeline</p>
-                    <h3>Are fines climbing or cooling?</h3>
-                    <p>Explore 2008–2024 jurisdiction time series with annotations that mark major policy shifts.</p>
-                    <ul>
-                        <li>Temporal trends & rolling averages</li>
-                        <li>Context markers for camera rollouts</li>
-                        <li>Highlights of surge vs stabilise years</li>
-                    </ul>
-                    <span class="card-cta">Open Q3 dashboard →</span>
-                </a>
-                <a href="q4.html" class="dash-card">
-                    <p class="card-tag">Q4 · Detection split</p>
-                    <h3>Who issues the fines?</h3>
-                    <p>Contrast camera-detected versus officer-issued infringements to see how automation changed the mix.</p>
-                    <ul>
-                        <li>Stacked comparisons per jurisdiction</li>
-                        <li>Callouts for camera dominance</li>
-                        <li>Governance notes on modality</li>
-                    </ul>
-                    <span class="card-cta">Open Q4 dashboard →</span>
-                </a>
-                <a href="q5.html" class="dash-card">
-                    <p class="card-tag">Q5 · Heatmap</p>
-                    <h3>Where are we still in the surge phase?</h3>
-                    <p>A year-by-jurisdiction heatmap with filters, tooltips, and annotations for rapid magnitude comparison.</p>
-                    <ul>
-                        <li>Colour-blind-safe sequential palette</li>
-                        <li>Year filters + delta toggle</li>
-                        <li>Narrative cues on spikes</li>
-                    </ul>
-                    <span class="card-cta">Open Q5 heatmap →</span>
-                </a>
-            </div>
-        </section>
-    </main>
-
-    <footer>
-        <p>&copy; 2025 COS30045 Group 16</p>
-    </footer>
-
-    <!-- JavaScript files -->
     <script src="js/main.js"></script>
 </body>
 </html>
