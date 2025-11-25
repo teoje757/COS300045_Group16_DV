@@ -64,7 +64,7 @@ d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", function (error, csvData
     // Color scale
     colorScale = d3.scale.linear()
         .domain([0, maxValue])
-        .range(["#ffffcc", "#800026"])
+        .range(["#BEDEDA", "#E14C70"])
         .interpolate(d3.interpolateHcl);
 
     // Create SVG
@@ -160,7 +160,7 @@ d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", function (error, csvData
                 .attr("transform", d => "translate(" + path.centroid(d) + ")")
                 .attr("font-size", "14px")
                 .attr("font-weight", "bold")
-                .attr("fill", "#333")
+                .attr("fill", "#1e3a5f")
                 .text(d => {
                     const rawName = d.properties.STATE_NAME || d.properties.STE_NAME16;
                     return geoToCsv[rawName];

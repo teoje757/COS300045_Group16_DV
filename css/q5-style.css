@@ -3,9 +3,9 @@
 ================================ */
 body {
     margin: 0;
-    background-color: #e9e6f7; /* softer lavender */
-    font-family: 'Roboto', sans-serif;
-    font-weight: 300;
+    background-color: #f5f5f5;
+    font-family: 'Lora', serif;
+    font-weight: 400;
 }
 
 /* ================================
@@ -35,8 +35,9 @@ body {
    Typography
 ================================ */
 h1 {
+    font-family: 'Poppins', sans-serif;
     font-weight: 700;
-    color: #4e5a64;
+    color: #1e3a5f;
     font-size: 42px;
     margin-bottom: 10px;
 }
@@ -63,9 +64,10 @@ p {
 }
 
 #yearDisplay {
+    font-family: 'Poppins', sans-serif;
     font-size: 26px;
-    font-weight: bold;
-    color: #374047;
+    font-weight: 700;
+    color: #1e3a5f;
     margin: 15px 0;
 }
 
@@ -82,17 +84,18 @@ p {
 button {
     padding: 8px 22px;
     margin: 0 6px;
-    background-color: #4e5a64;
+    background-color: #54ADD4;
     color: white;
     border: none;
     border-radius: 6px;
     cursor: pointer;
+    font-family: 'Lora', serif;
     font-size: 14px;
     transition: 0.2s ease-in-out;
 }
 
 button:hover {
-    background-color: #6a7680;
+    background-color: #1e3a5f;
 }
 
 button:disabled {
@@ -108,7 +111,7 @@ svg {
 }
 
 .state-path {
-    stroke: #333;
+    stroke: #1e3a5f;
     stroke-width: 1.5px;
     transition: all 0.3s;
     cursor: pointer;
@@ -130,11 +133,12 @@ svg {
 .tooltip {
     position: absolute;
     padding: 10px 14px;
-    background: rgba(0, 0, 0, 0.85);
+    background: #1e3a5f;
     color: white;
     border-radius: 6px;
     pointer-events: none;
     opacity: 0;
+    font-family: 'Lora', serif;
     font-size: 14px;
     z-index: 999;
     transition: opacity 0.15s ease-in-out;
@@ -146,7 +150,8 @@ svg {
 #loading {
     text-align: center;
     padding: 20px;
-    color: #4e5a64;
+    color: #1e3a5f;
+    font-family: 'Lora', serif;
     font-size: 18px;
     font-weight: 400;
 }
