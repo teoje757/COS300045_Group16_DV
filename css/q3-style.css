@@ -100,7 +100,7 @@ body {
 }
 
 .visualization-container {
-    background: white;
+    background: #FCFAF9;
     border-radius: 8px;
     padding: 40px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -133,7 +133,7 @@ body {
 /* Controls */
 .controls {
     margin-bottom: 30px;
-    background: #f9fafb;
+    background: #FCFAF9;
     border-radius: 6px;
     border: 1px solid #e5e7eb;
     overflow: hidden;
@@ -143,7 +143,7 @@ body {
     display: flex;
     align-items: center;
     padding: 12px 20px;
-    background: white;
+    background: #FCFAF9;
     border-bottom: 1px solid #e5e7eb;
     cursor: pointer;
 }
@@ -180,7 +180,7 @@ body {
     display: grid;
     grid-template-columns: 1fr 2fr;
     gap: 24px;
-    background: white;
+    background: #FCFAF9;
 }
 
 .filter-section {
@@ -266,7 +266,7 @@ body {
     border-radius: 6px;
     font-size: 14px;
     transition: border-color 0.3s;
-    background-color: white;
+    background-color: #FCFAF9;
 }
 
 .year-input-group input:focus,
@@ -382,7 +382,7 @@ body {
     min-height: 600px;
     margin-bottom: 20px;
     position: relative;
-    background-color: #ffffff;
+    background-color: #FCFAF9;
     border-radius: 8px;
     padding: 20px 10px;
     box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
@@ -495,13 +495,13 @@ body {
     padding: 10px 12px;
     border-radius: 8px;
     transition: all 0.3s;
-    background: white;
+    background: #FCFAF9;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     white-space: nowrap;
 }
 
 .legend-item:hover {
-    background-color: #ffffff;
+    background-color: #FCFAF9;
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
@@ -637,7 +637,7 @@ footer {
 .insights-section {
     margin-top: 3rem;
     padding: 2rem 2.5rem;
-    background: white;
+    background: #FCFAF9;
     border-radius: 12px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }

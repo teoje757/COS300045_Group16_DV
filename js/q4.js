@@ -38,8 +38,8 @@ const config = {
 
 // Colors for detection methods (categorical color scheme)
 const colors = {
-    'camera': '#3498db',  // Blue - Camera issued fines
-    'police': '#f59e0b'   // Amber - Police issued fines
+    'camera': '#FFAEB4',  // Watermelon - Camera issued fines
+    'police': '#BEDEDA'   // Mint - Police issued fines
 };
 
 // Stack keys in order (bottom to top)

@@ -75,7 +75,7 @@ body {
 }
 
 .visualization-container {
-    background: white;
+    background: #FCFAF9;
     border-radius: 8px;
     padding: 40px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -108,7 +108,7 @@ body {
 /* Controls */
 .controls {
     margin-bottom: 30px;
-    background: #f9fafb;
+    background: #FCFAF9;
     border-radius: 6px;
     border: 1px solid #e5e7eb;
     overflow: hidden;
@@ -118,7 +118,7 @@ body {
     display: flex;
     align-items: center;
     padding: 12px 20px;
-    background: white;
+    background: #FCFAF9;
     border-bottom: 1px solid #e5e7eb;
     cursor: pointer;
 }
@@ -176,7 +176,7 @@ body {
 }
 
 .filters-content {
-    background: #f9fafb;
+    background: #FCFAF9;
     border-radius: 0;
     padding: 20px;
     margin-top: 0;
@@ -230,7 +230,7 @@ body {
     align-items: center;
     gap: 8px;
     padding: 10px 12px;
-    background: white;
+    background: #FCFAF9;
     border-radius: 6px;
     cursor: pointer;
     transition: all 0.3s;
@@ -301,7 +301,7 @@ body {
     grid-template-columns: repeat(2, 1fr);
     gap: 12px;
     padding: 20px;
-    background: #f9fafb;
+    background: #FCFAF9;
     border-radius: 8px;
     max-width: 100%;;
     margin: 0 auto;
@@ -316,7 +316,7 @@ body {
     padding: 10px 12px;
     border-radius: 8px;
     transition: all 0.3s;
-    background: white;
+    background: #FCFAF9;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     white-space: nowrap;
 }
@@ -457,7 +457,7 @@ body {
 .insights-section {
     margin-top: 3rem;
     padding: 2rem 2.5rem;
-    background: white;
+    background: #FCFAF9;
     border-radius: 12px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }

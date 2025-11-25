@@ -37,14 +37,14 @@ const config = {
 
 // Color scheme for jurisdictions - simple professional colors with good contrast
 const colorScale = {
-    'NSW': '#1e3a8a',      // Deep blue
-    'VIC': '#f59e0b',      // Amber
-    'QLD': '#10b981',      // Green
-    'WA': '#ef4444',       // Red
-    'SA': '#8b5cf6',       // Purple
-    'TAS': '#06b6d4',      // Cyan
-    'ACT': '#ec4899',      // Pink
-    'NT': '#6b7280'        // Gray
+    'NSW': '#FFC900',      // Golden hour
+    'VIC': '#54ADD4',      // Atlantic blue
+    'QLD': '#FFAEB4',      // Watermelon
+    'WA': '#E14C70',       // Dragonfruit
+    'SA': '#C49EE8',       // Lavender
+    'TAS': '#81BC00',      // Clover
+    'ACT': '#BEDEDA',      // Mint
+    'NT': '#E9EF63'        // Keylime pie
 };
 
 // State management
