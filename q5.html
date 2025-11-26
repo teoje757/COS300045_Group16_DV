@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Australia Heatmap - Q5</title>
+
+    <!-- Poppins & Lora Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Lora:wght@400&display=swap" rel="stylesheet">
+
+    <!-- D3 Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/q5-style.css">
+</head>
+
+<body>
+    <!-- Navigation Bar -->
+    <nav class="nav-container">
+        <a href="index.html" class="nav-item" data-page="index">
+            <span class="nav-icon icon-home"></span>
+            <span class="nav-tooltip">Home</span>
+        </a>
+        
+        <a href="q1.html" class="nav-item" data-page="q1">
+            <span class="nav-icon icon-q" data-q="Q1"></span>
+            <span class="nav-tooltip">Question 1</span>
+        </a>
+        
+        <a href="q2.html" class="nav-item" data-page="q2">
+            <span class="nav-icon icon-q" data-q="Q2"></span>
+            <span class="nav-tooltip">Question 2</span>
+        </a>
+        
+        <a href="q3.html" class="nav-item" data-page="q3">
+            <span class="nav-icon icon-q" data-q="Q3"></span>
+            <span class="nav-tooltip">Question 3</span>
+        </a>
+        
+        <a href="q4.html" class="nav-item" data-page="q4">
+            <span class="nav-icon icon-q" data-q="Q4"></span>
+            <span class="nav-tooltip">Question 4</span>
+        </a>
+        
+        <a href="q5.html" class="nav-item" data-page="q5">
+            <span class="nav-icon icon-q" data-q="Q5"></span>
+            <span class="nav-tooltip">Question 5</span>
+        </a>
+    </nav>
+
+    <!-- Main Container -->
+    <div id="container">
+        <!-- Legend positioned top left -->
+        <div id="legendContainer"></div>
+
+        <h1>Mobile Phone Enforcement Patterns Across Australia</h1>
+        <p class="subtitle">
+            Interactive visualization showing mobile phone enforcement fines by state from 2008 to 2024.
+            Explore temporal patterns and regional variations using the controls below.
+        </p>
+
+        <div id="controls">
+            <button id="playBtn">Play</button>
+            <button id="resetBtn">Reset</button>
+
+            <div id="yearDisplay">2008</div>
+
+            <input type="range"
+                id="yearSlider"
+                min="2008"
+                max="2024"
+                value="2008"
+                step="1">
+        </div>
+
+        <div id="loading">Loading data...</div>
+
+        <div id="svganchor"></div>
+
+        <div id="tooltip" class="tooltip"></div>
+
+        <p class="source-note">
+            Source: Australian Bureau of Statistics | Data shows mobile phone enforcement patterns by state (2008–2024)
+        </p>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="js/q5.js"></script>
+</body>
+</html>
