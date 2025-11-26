@@ -50,6 +50,12 @@
 
     <!-- Main Container -->
     <div id="container">
+        <!-- Back Button -->
+        <a href="q4.html" class="back-btn-q5" title="Back to Q4">
+            <span class="back-arrow">←</span>
+            <span class="loading-spinner"></span>
+        </a>
+
         <!-- Legend positioned top left -->
         <div id="legendContainer"></div>
 
@@ -83,6 +89,13 @@
             Source: Australian Bureau of Statistics | Data shows mobile phone enforcement patterns by state (2008–2024)
         </p>
     </div>
+
+    <script>
+        // Add loading state to back button
+        document.querySelector('.back-btn-q5').addEventListener('click', function(e) {
+            this.classList.add('loading');
+        });
+    </script>
 
     <!-- JavaScript -->
     <script src="js/q5.js"></script>
