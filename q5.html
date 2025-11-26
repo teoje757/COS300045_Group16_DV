@@ -2,128 +2,89 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Fine Detection Methods by Jurisdiction (2024)</title>
+    <title>Australia Heatmap - Q5</title>
 
-    <!-- Roboto Font -->
-    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,700" rel="stylesheet">
+    <!-- Poppins & Lora Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Lora:wght@400&display=swap" rel="stylesheet">
 
     <!-- D3 Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
 
     <!-- Styles -->
     <link rel="stylesheet" href="css/q5-style.css">
-    <style>
-        /* --- Standardized Card and Header Styles (override/additions) --- */
-        body {
-            background: #f3f6fa;
-        }
-        .card {
-            background: #fff;
-            border-radius: 16px;
-            box-shadow: 0 4px 18px rgba(52, 73, 94, 0.09);
-            max-width: 1200px; /* Increased to match Q1-Q4 */
-            margin: 32px auto 32px auto;
-            padding: 0 0 40px 0;
-            position: relative;
-        }
-        .card-header {
-            padding: 32px 56px 12px 56px; /* More horizontal padding */
-            border-radius: 16px 16px 0 0;
-            background: #f9fbfd;
-            border-bottom: 1px solid #e5e7eb;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            position: relative;
-        }
-        .nav-btn {
-            position: absolute;
-            top: 32px;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            border: none;
-            background: #f3f6fa;
-            color: #374151;
-            font-size: 1.7rem;
-            font-weight: 700;
-            box-shadow: 0 2px 8px rgba(52, 73, 94, 0.07);
-            cursor: pointer;
-            transition: background 0.15s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .nav-btn:hover {
-            background: #e5e7eb;
-        }
-        .nav-btn.left {
-            left: 24px;
-        }
-        .nav-btn.right {
-            right: 24px;
-        }
-        .main-title {
-            font-size: 2.1rem;
-            font-weight: 700;
-            color: #26324b;
-            margin: 0 0 8px 0;
-            text-align: center;
-        }
-        .subtitle {
-            font-size: 1.08rem;
-            color: #6b7280;
-            font-weight: 400;
-            margin-bottom: 0;
-            text-align: center;
-        }
-        /* Controls area */
-        #controls {
-            margin: 24px auto 0 auto;
-            padding: 0 56px;
-            text-align: center;
-        }
-        /* Responsive */
-        @media (max-width: 900px) {
-            .card, .card-header { padding: 12px !important; }
-            #controls { padding: 0 8px; }
-        }
-    </style>
 </head>
+
 <body>
-    <div class="card">
-        <div class="card-header">
-            <button class="nav-btn left" id="backBtn" title="Back">&#8592;</button>
-            <div>
-                <div class="main-title">Fine Detection Methods by Jurisdiction (2024)</div>
-                <div class="subtitle">Camera-detected vs Police-issued Traffic Fines</div>
-            </div>
-            <button class="nav-btn right" id="nextBtn" title="Next">&#8594;</button>
-        </div>
+    <!-- Navigation Bar -->
+    <nav class="nav-container">
+        <a href="index.html" class="nav-item" data-page="index">
+            <span class="nav-icon icon-home"></span>
+            <span class="nav-tooltip">Home</span>
+        </a>
+        
+        <a href="q1.html" class="nav-item" data-page="q1">
+            <span class="nav-icon icon-q" data-q="Q1"></span>
+            <span class="nav-tooltip">Question 1</span>
+        </a>
+        
+        <a href="q2.html" class="nav-item" data-page="q2">
+            <span class="nav-icon icon-q" data-q="Q2"></span>
+            <span class="nav-tooltip">Question 2</span>
+        </a>
+        
+        <a href="q3.html" class="nav-item" data-page="q3">
+            <span class="nav-icon icon-q" data-q="Q3"></span>
+            <span class="nav-tooltip">Question 3</span>
+        </a>
+        
+        <a href="q4.html" class="nav-item" data-page="q4">
+            <span class="nav-icon icon-q" data-q="Q4"></span>
+            <span class="nav-tooltip">Question 4</span>
+        </a>
+        
+        <a href="q5.html" class="nav-item" data-page="q5">
+            <span class="nav-icon icon-q" data-q="Q5"></span>
+            <span class="nav-tooltip">Question 5</span>
+        </a>
+    </nav>
+
+    <!-- Main Container -->
+    <div id="container">
+        <!-- Legend positioned top left -->
+        <div id="legendContainer"></div>
+
+        <h1>Mobile Phone Enforcement Patterns Across Australia</h1>
+        <p class="subtitle">
+            Interactive visualization showing mobile phone enforcement fines by state from 2008 to 2024.
+            Explore temporal patterns and regional variations using the controls below.
+        </p>
+
         <div id="controls">
             <button id="playBtn">Play</button>
             <button id="resetBtn">Reset</button>
+
             <div id="yearDisplay">2008</div>
+
             <input type="range"
                 id="yearSlider"
                 min="2008"
                 max="2024"
                 value="2008"
                 step="1">
-            <div id="legendContainer"></div>
         </div>
+
         <div id="loading">Loading data...</div>
+
         <div id="svganchor"></div>
+
         <div id="tooltip" class="tooltip"></div>
+
         <p class="source-note">
             Source: Australian Bureau of Statistics | Data shows mobile phone enforcement patterns by state (2008–2024)
         </p>
     </div>
+
+    <!-- JavaScript -->
     <script src="js/q5.js"></script>
-    <script>
-        // Navigation logic for back/next buttons
-        document.getElementById('backBtn').onclick = () => window.location.href = 'q4.html';
-        document.getElementById('nextBtn').onclick = () => window.location.href = 'q1.html';
-    </script>
 </body>
 </html>

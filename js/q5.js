@@ -1,5 +1,6 @@
 // ======================================================
-// Australia State Heatmap — Fully Fixed + Rewritten
+// q5.js - COMPLETE FILE
+// Australia State Heatmap – Fully Fixed + Rewritten
 // ======================================================
 
 // Global state
@@ -11,14 +12,14 @@ let svg;
 let dataMap = {};
 
 // Dimensions
-const w = 1100; // Increased from 850 to match card width
-const h = 700;
+const w = 520;
+const h = 400;
 
 // Projection
 const projection = d3.geo.mercator()
     .center([132, -28])
     .translate([w / 2, h / 2])
-    .scale(1000);
+    .scale(600);
 
 const path = d3.geo.path().projection(projection);
 
@@ -61,10 +62,10 @@ d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", function (error, csvData
     const allValues = csvData.map(d => +d.FINES);
     const maxValue = d3.max(allValues);
 
-    // Color scale
+    // Color scale - using gradient from mint to dragonfruit
     colorScale = d3.scale.linear()
         .domain([0, maxValue])
-        .range(["#ffffcc", "#800026"])
+        .range(["#BEDEDA", "#E14C70"])
         .interpolate(d3.interpolateHcl);
 
     // Create SVG
@@ -142,8 +143,31 @@ d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", function (error, csvData
                         .html(`<strong>${rawName}</strong><br>Year: ${currentYear}<br>Fines: ${value.toLocaleString()}`);
                 })
                 .on("mousemove", () => {
-                    tooltip.style("left", (d3.event.pageX + 10) + "px")
-                        .style("top", (d3.event.pageY - 28) + "px");
+                    const containerRect = document.getElementById("container").getBoundingClientRect();
+                    const tooltipNode = tooltip.node();
+                    const tooltipWidth = tooltipNode.offsetWidth;
+                    const tooltipHeight = tooltipNode.offsetHeight;
+                    
+                    let left = d3.event.pageX + 10;
+                    let top = d3.event.pageY - 28;
+                    
+                    // Check if tooltip goes beyond right edge
+                    if (left + tooltipWidth > containerRect.right) {
+                        left = d3.event.pageX - tooltipWidth - 10;
+                    }
+                    
+                    // Check if tooltip goes beyond bottom edge
+                    if (top + tooltipHeight > containerRect.bottom) {
+                        top = d3.event.pageY - tooltipHeight - 10;
+                    }
+                    
+                    // Check if tooltip goes beyond top edge
+                    if (top < containerRect.top) {
+                        top = d3.event.pageY + 10;
+                    }
+                    
+                    tooltip.style("left", left + "px")
+                        .style("top", top + "px");
                 })
                 .on("mouseout", () => tooltip.style("opacity", 0));
 
@@ -158,25 +182,29 @@ d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", function (error, csvData
                 .attr("text-anchor", "middle")
                 .attr("dy", ".35em")
                 .attr("transform", d => "translate(" + path.centroid(d) + ")")
-                .attr("font-size", "14px")
+                .attr("font-size", "10px")
                 .attr("font-weight", "bold")
-                .attr("fill", "#333")
+                .attr("fill", "#1e3a5f")
                 .text(d => {
                     const rawName = d.properties.STATE_NAME || d.properties.STE_NAME16;
                     return geoToCsv[rawName];
                 });
 
             // --------------------------------------------------
-            // LEGEND BELOW SLIDER
+            // LEGEND - TOP LEFT
             // --------------------------------------------------
             const legendSvg = d3.select("#legendContainer")
                 .append("svg")
-                .attr("width", 320)
-                .attr("height", 60);
+                .attr("width", 100)
+                .attr("height", 120);
 
             const defs = legendSvg.append("defs");
             const gradient = defs.append("linearGradient")
-                .attr("id", "legend-gradient");
+                .attr("id", "legend-gradient")
+                .attr("x1", "0%")
+                .attr("y1", "100%")
+                .attr("x2", "0%")
+                .attr("y2", "0%");
 
             gradient.selectAll("stop")
                 .data(colorScale.range())
@@ -188,24 +216,28 @@ d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", function (error, csvData
             const legend = legendSvg.append("g")
                 .attr("transform", "translate(10, 10)");
 
+            // Vertical rectangle for legend
             legend.append("rect")
-                .attr("width", 300)
-                .attr("height", 20)
+                .attr("width", 25)
+                .attr("height", 80)
                 .style("fill", "url(#legend-gradient)")
-                .style("stroke", "#333");
+                .style("stroke", "#333")
+                .style("stroke-width", "1px");
 
             const legendScale = d3.scale.linear()
-                .domain([0, maxValue])
-                .range([0, 300]);
+                .domain([maxValue, 0])
+                .range([0, 80]);
 
             const legendAxis = d3.svg.axis()
                 .scale(legendScale)
-                .orient("bottom")
-                .ticks(5)
+                .orient("right")
+                .ticks(4)
                 .tickFormat(d3.format(".2s"));
 
             legend.append("g")
-                .attr("transform", "translate(0, 20)")
+                .attr("transform", "translate(25, 0)")
+                .attr("class", "legend-axis")
+                .style("font-size", "9px")
                 .call(legendAxis);
 
             // ======================================================
@@ -245,4 +277,23 @@ d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", function (error, csvData
             });
         }
     );
+});
+
+// ======================================================
+// NAVIGATION AUTO-DETECTION
+// ======================================================
+document.addEventListener('DOMContentLoaded', function() {
+    // Get current page filename
+    const currentPage = window.location.pathname.split('/').pop().replace('.html', '') || 'index';
+    
+    // Remove all active classes
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.remove('active');
+    });
+    
+    // Add active class to current page
+    const activeItem = document.querySelector(`[data-page="${currentPage}"]`);
+    if (activeItem) {
+        activeItem.classList.add('active');
+    }
 });
