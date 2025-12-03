@@ -139,36 +139,30 @@ d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", function (error, csvData
                     const stateCode = geoToCsv[rawName];
                     const value = getValue(stateCode, currentYear);
 
-                    tooltip.style("opacity", 1)
-                        .html(`<strong>${rawName}</strong><br>Year: ${currentYear}<br>Fines: ${value.toLocaleString()}`);
-                })
-                .on("mousemove", () => {
-                    const containerRect = document.getElementById("container").getBoundingClientRect();
+                    tooltip.html(`<strong>${rawName}</strong><br>Year: ${currentYear}<br>Fines: ${value.toLocaleString()}`);
+
+                    // Position tooltip above the state's centroid (hover over the section)
+                    const centroid = path.centroid(d); // [x, y] relative to SVG
+                    const svgRect = svg.node().getBoundingClientRect();
                     const tooltipNode = tooltip.node();
-                    const tooltipWidth = tooltipNode.offsetWidth;
-                    const tooltipHeight = tooltipNode.offsetHeight;
-                    
-                    let left = d3.event.pageX + 10;
-                    let top = d3.event.pageY - 28;
-                    
-                    // Check if tooltip goes beyond right edge
-                    if (left + tooltipWidth > containerRect.right) {
-                        left = d3.event.pageX - tooltipWidth - 10;
-                    }
-                    
-                    // Check if tooltip goes beyond bottom edge
-                    if (top + tooltipHeight > containerRect.bottom) {
-                        top = d3.event.pageY - tooltipHeight - 10;
-                    }
-                    
-                    // Check if tooltip goes beyond top edge
-                    if (top < containerRect.top) {
-                        top = d3.event.pageY + 10;
-                    }
-                    
-                    tooltip.style("left", left + "px")
-                        .style("top", top + "px");
+
+                    // Ensure tooltip is visible to measure
+                    tooltip.style("opacity", 1).style("left", "-9999px").style("top", "-9999px");
+                    const tooltipWidth = tooltipNode.offsetWidth || 120;
+                    const tooltipHeight = tooltipNode.offsetHeight || 40;
+
+                    let left = Math.round(svgRect.left + centroid[0] - tooltipWidth / 2);
+                    let top = Math.round(svgRect.top + centroid[1] - tooltipHeight - 12);
+
+                    // Constrain within container
+                    const containerRect = document.getElementById("container").getBoundingClientRect();
+                    if (left < containerRect.left + 8) left = containerRect.left + 8;
+                    if (left + tooltipWidth > containerRect.right - 8) left = containerRect.right - tooltipWidth - 8;
+                    if (top < containerRect.top + 8) top = containerRect.top + 8;
+
+                    tooltip.style("left", left + "px").style("top", top + "px");
                 })
+                .on("mousemove", null)
                 .on("mouseout", () => tooltip.style("opacity", 0));
 
             // --------------------------------------------------
