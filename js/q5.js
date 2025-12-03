@@ -138,8 +138,10 @@ d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", function (error, csvData
                     const rawName = d.properties.STATE_NAME || d.properties.STE_NAME16;
                     const stateCode = geoToCsv[rawName];
                     const value = getValue(stateCode, currentYear);
-
                     tooltip.html(`<strong>${rawName}</strong><br>Year: ${currentYear}<br>Fines: ${value.toLocaleString()}`);
+
+                    // Debug: log hover
+                    // console.log('hover', rawName);
 
                     // Position tooltip above the state's centroid (hover over the section)
                     const centroid = path.centroid(d); // [x, y] relative to SVG
@@ -151,8 +153,19 @@ d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", function (error, csvData
                     const tooltipWidth = tooltipNode.offsetWidth || 120;
                     const tooltipHeight = tooltipNode.offsetHeight || 40;
 
-                    let left = Math.round(svgRect.left + centroid[0] - tooltipWidth / 2);
-                    let top = Math.round(svgRect.top + centroid[1] - tooltipHeight - 12);
+                    let left, top;
+
+                    // If centroid is invalid (NaN), fall back to mouse event coordinates
+                    if (!isFinite(centroid[0]) || !isFinite(centroid[1])) {
+                        const pageX = (d3.event && d3.event.pageX) ? d3.event.pageX : (d3.event && d3.event.clientX ? d3.event.clientX + window.scrollX : svgRect.left + svgRect.width/2);
+                        const pageY = (d3.event && d3.event.pageY) ? d3.event.pageY : (d3.event && d3.event.clientY ? d3.event.clientY + window.scrollY : svgRect.top + svgRect.height/2);
+
+                        left = Math.round(pageX - tooltipWidth / 2);
+                        top = Math.round(pageY - tooltipHeight - 12);
+                    } else {
+                        left = Math.round(svgRect.left + centroid[0] - tooltipWidth / 2);
+                        top = Math.round(svgRect.top + centroid[1] - tooltipHeight - 12);
+                    }
 
                     // Constrain within container (page coordinates)
                     const containerRect = document.getElementById("container").getBoundingClientRect();
