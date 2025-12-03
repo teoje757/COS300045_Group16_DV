@@ -20,7 +20,7 @@
 .nav-item {
     width: 50px;
     height: 50px;
-    background: rgba(255, 255, 255, 0.15);
+    background: #f0f0f0;
     border-radius: 15px;
     display: flex;
     align-items: center;
@@ -33,17 +33,18 @@
     font-size: 20px;
     font-weight: 600;
     position: relative;
+    font-family: 'Poppins', sans-serif;
 }
 
 .nav-item:hover {
-    background: rgba(255, 255, 255, 0.25);
+    background: #e0e0e0;
     transform: translateX(5px);
 }
 
 .nav-item.active {
     background: #6366f1;
     color: white;
-    box-shadow: 0 4px 15px rgba(255, 255, 255, 0.3);
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
 }
 
 .nav-item.active::before {
