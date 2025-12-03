@@ -171,8 +171,8 @@ body {
     max-width: 900px;
     height: 95vh;
     max-height: 900px;
-    margin: 0 auto;
-    margin-left: 80px; /* reserve space for left nav */
+    margin: 12px auto; /* center with auto; top/bottom margin for spacing */
+    margin-left: calc(80px + 12px); /* reserve space for left nav + small offset */
     padding: 12px 20px;
     background-color: white;
     box-sizing: border-box;
