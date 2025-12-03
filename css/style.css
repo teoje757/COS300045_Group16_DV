@@ -160,11 +160,22 @@ header {
     }
 
     .container {
-        /* Narrow default content width and leave space for left nav */
+        /* Match Q5 container structure */
+        width: 95%;
         max-width: 900px;
-        margin-left: 80px;
-        margin-right: auto;
-        padding-right: 12px;
+        height: 95vh;
+        max-height: 900px;
+        margin: 0 auto;
+        margin-left: 80px; /* reserve space for left nav */
+        padding: 12px 20px;
+        background-color: white;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        position: relative;
     }
     text-transform: uppercase;
     margin-bottom: 24px;
