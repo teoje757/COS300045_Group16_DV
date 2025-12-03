@@ -168,17 +168,20 @@ p {
 
 .chart-title {
     font-family: 'Poppins', sans-serif;
-    font-size: 20px;
-    color: #4a5f7f;
-    margin: 0 0 8px 0;
-    font-weight: 600;
+    margin: 0 0 10px 0;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #2a3a4d;
     display: block;
 }
 
 .chart-subtitle {
-    font-size: 14px;
-    color: #6b7280;
-    margin: 0;
+    margin: 0 0 8px 0;
+    font-size: 1.13rem;
+    color: #333;
+    max-width: 700px;
+    display: inline-block;
+    text-align: center;
     font-weight: 400;
 }
 
