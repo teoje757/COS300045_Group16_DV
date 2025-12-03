@@ -8,6 +8,12 @@ body {
     position: relative;
 }
 
+/* Match q5 base typography */
+body {
+    font-family: 'Lora', serif;
+    font-weight: 400;
+}
+
 /* Q5-consistent typography */
 h1 {
     font-family: 'Poppins', sans-serif;
@@ -142,19 +148,14 @@ p {
 }
 
 .main-title {
-    font-size: 2rem;
+    font-family: 'Poppins', sans-serif;
+    font-size: 28px;
     color: #2d3748;
     margin: 0 0 8px 0;
     font-weight: 700;
     letter-spacing: 0.01em;
 }
 
-.subtitle {
-    font-size: 1.05rem;
-    color: #6b7280;
-    margin: 0;
-    font-weight: 400;
-}
 
 /* Dynamic Title */
 .chart-title-container {
@@ -165,7 +166,8 @@ p {
 }
 
 .chart-title {
-    font-size: 1.6rem;
+    font-family: 'Poppins', sans-serif;
+    font-size: 20px;
     color: #4a5f7f;
     margin: 0 0 8px 0;
     font-weight: 600;
@@ -173,7 +175,7 @@ p {
 }
 
 .chart-subtitle {
-    font-size: 0.95rem;
+    font-size: 14px;
     color: #6b7280;
     margin: 0;
     font-weight: 400;
