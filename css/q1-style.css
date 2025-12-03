@@ -12,9 +12,12 @@ h1, h2, h3, h4, h5, h6 {
     font-weight: 700;
 }
 
+/* Push Q1 content to the right so the sidebar doesn't overlap */
 .container {
-    margin-left: 80px;
+    margin-left: 150px;      /* Increase from 80px → 150px */
+    padding-right: 20px;    /* Keep layout breathable */
 }
+
 
 #chart {
     width: 100%;
