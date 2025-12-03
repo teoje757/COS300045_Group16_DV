@@ -16,6 +16,11 @@
                 <span class="loading-spinner"></span>
             </a>
             
+            <a href="q5.html" class="next-btn" title="Next to Q5">
+                <span class="next-arrow">→</span>
+                <span class="loading-spinner"></span>
+            </a>
+            
             <!-- Simple Title -->
             <div class="chart-title-container">
                 <h2 class="main-title">Fine Detection Methods by Jurisdiction (2024)</h2>
@@ -93,8 +98,11 @@
     </div>
 
     <script>
-        // Add loading state to back button
+        // Add loading state to navigation buttons
         document.querySelector('.back-btn').addEventListener('click', function(e) {
+            this.classList.add('loading');
+        });
+        document.querySelector('.next-btn').addEventListener('click', function(e) {
             this.classList.add('loading');
         });
     </script>
