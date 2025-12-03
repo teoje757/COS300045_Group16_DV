@@ -160,7 +160,7 @@ header {
     }
 
     .container {
-        /* Match Q5 container structure */
+        /* Match Q4 container structure */
         width: 95%;
         max-width: 900px;
         height: 95vh;
@@ -172,7 +172,7 @@ header {
         box-sizing: border-box;
         display: flex;
         flex-direction: column;
-        overflow: hidden;
+        overflow-y: auto; /* allow scrolling for content */
         border-radius: 12px;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
         position: relative;
