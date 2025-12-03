@@ -169,6 +169,15 @@ svg {
     transition: opacity 0.15s ease-in-out;
 }
 
+/* Visualization wrapper — match other pages */
+.visualization-container {
+    background: #FCFAF9;
+    border-radius: 8px;
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    position: relative;
+}
+
 /* ================================
    Loading Message
 ================================ */
