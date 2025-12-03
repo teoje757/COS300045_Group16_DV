@@ -94,16 +94,17 @@ body {
 }
 
 .container {
-    max-width: 1200px;
+    /* Narrower content column so charts and text appear smaller and centered */
+    max-width: 980px;
     margin: 0 auto;
-    margin-left: 80px;
+    margin-left: 80px; /* leave space for left nav */
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .visualization-container {
     background: #FCFAF9;
     border-radius: 8px;
-    padding: 40px;
+    padding: 30px; /* reduced padding to better fit smaller container */
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     position: relative;
 }
@@ -597,19 +598,20 @@ footer {
     }
 }
 
-@media (max-width: 480px) {
-    .year-slider-container {
-        flex-direction: column;
-        align-items: stretch;
-    }
-    
-    .jurisdiction-grid {
-        grid-template-columns: 1fr;
+@media (min-width: 1400px) {
+    .container {
+        /* allow larger max-width on very wide screens but keep comfortable reading width */
+        max-width: 1200px;
     }
 
-    #legend {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 8px;
+    #chart {
+        min-height: 600px;
+    }
+
+    .main-title {
+        font-size: 2.3rem; /* keep large-screen title sizing */
+    }
+}
         padding: 12px;
     }
 
