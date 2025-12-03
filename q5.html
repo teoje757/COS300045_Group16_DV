@@ -12,6 +12,8 @@
 
     <!-- Styles -->
     <link rel="stylesheet" href="css/q5-style.css">
+    <link rel="stylesheet" href="css/nav.css">
+    
 </head>
 
 <body>
@@ -86,5 +88,24 @@
 
     <!-- JavaScript -->
     <script src="js/q5.js"></script>
+
+    <!-- Navigation Auto-Detection -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get current page filename
+            const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+            
+            // Find nav item matching current page and add active class
+            document.querySelectorAll('.nav-item').forEach(item => {
+                const page = item.getAttribute('data-page');
+                const href = item.getAttribute('href');
+                
+                if (href && href.includes(currentPage.replace('.html', '')) || 
+                    (page === 'index' && currentPage === '')) {
+                    item.classList.add('active');
+                }
+            });
+        });
+    </script>
 </body>
 </html>
