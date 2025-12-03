@@ -149,6 +149,26 @@ p {
     line-height: 1.5;
 }
 
+/* Chart title/subtitle used in header blocks */
+.chart-title {
+    font-family: 'Poppins', sans-serif;
+    margin: 0 0 10px 0;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #2a3a4d;
+    text-align: center;
+}
+
+.chart-subtitle {
+    margin: 0 0 8px 0;
+    font-size: 1.13rem;
+    color: #333;
+    max-width: 700px;
+    display: inline-block;
+    text-align: center;
+    font-weight: 400;
+}
+
 /* Controls */
 .controls {
     margin-bottom: 30px;
