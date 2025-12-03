@@ -12,7 +12,7 @@ body {
 .back-btn {
     position: absolute;
     top: 20px;
-    left: 20px;
+    left: 100px;
     width: 45px;
     height: 45px;
     border-radius: 50%;
@@ -96,6 +96,7 @@ body {
 .container {
     max-width: 1200px;
     margin: 0 auto;
+    margin-left: 80px;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 

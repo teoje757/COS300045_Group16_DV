@@ -35,7 +35,7 @@ body {
     z-index: 10;
 }
 
-.back-btn { left: 20px; }
+.back-btn { left: 100px; }
 .next-btn { right: 20px; }
 
 .back-arrow,
@@ -85,6 +85,7 @@ body {
 .container {
     max-width: 1200px;
     margin: 0 auto;
+    margin-left: 80px;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
