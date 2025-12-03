@@ -154,13 +154,17 @@ d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", function (error, csvData
                     let left = Math.round(svgRect.left + centroid[0] - tooltipWidth / 2);
                     let top = Math.round(svgRect.top + centroid[1] - tooltipHeight - 12);
 
-                    // Constrain within container
+                    // Constrain within container (page coordinates)
                     const containerRect = document.getElementById("container").getBoundingClientRect();
                     if (left < containerRect.left + 8) left = containerRect.left + 8;
                     if (left + tooltipWidth > containerRect.right - 8) left = containerRect.right - tooltipWidth - 8;
                     if (top < containerRect.top + 8) top = containerRect.top + 8;
 
-                    tooltip.style("left", left + "px").style("top", top + "px");
+                    // Convert page coordinates to container-local coordinates (tooltip is positioned absolute inside .container)
+                    const relLeft = left - containerRect.left;
+                    const relTop = top - containerRect.top;
+
+                    tooltip.style("left", relLeft + "px").style("top", relTop + "px");
                 })
                 .on("mousemove", null)
                 .on("mouseout", () => tooltip.style("opacity", 0));
