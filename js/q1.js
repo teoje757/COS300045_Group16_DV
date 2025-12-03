@@ -1001,7 +1001,7 @@ window.addEventListener('resize', () => {
         d3.selectAll('.peak-info-box').remove();
         createChart();
     }, 250);
-
+});
 
 // ======================================================
 // NAVIGATION AUTO-DETECTION
@@ -1020,5 +1020,4 @@ document.addEventListener('DOMContentLoaded', function() {
     if (activeItem) {
         activeItem.classList.add('active');
     }
-});
 });
