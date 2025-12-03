@@ -210,6 +210,33 @@ h1 {
     font-weight: 400;
 }
 
+/* Chart title/subtitle used across pages (centralized) */
+.chart-title {
+    font-family: 'Poppins', sans-serif;
+    margin: 0 0 10px 0;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #2a3a4d;
+    text-align: center;
+}
+
+.chart-subtitle {
+    margin: 0 0 8px 0;
+    font-size: 1.13rem;
+    color: #333;
+    max-width: 700px;
+    display: inline-block;
+    text-align: center;
+    font-weight: 400;
+}
+
+/* Make any SVG inside the svg anchor responsive */
+#svganchor svg {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
 .cta-button {
     display: inline-block;
     padding: 16px 42px;

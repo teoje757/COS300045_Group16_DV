@@ -67,11 +67,12 @@ d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", function (error, csvData
         .range(["#ffffcc", "#800026"])
         .interpolate(d3.interpolateHcl);
 
-    // Create SVG
+    // Create SVG (responsive via viewBox)
     svg = d3.select("#svganchor")
         .append("svg")
-        .attr("width", w)
-        .attr("height", h);
+        .attr("viewBox", "0 0 " + w + " " + h)
+        .attr("preserveAspectRatio", "xMidYMid meet")
+        .attr("width", "100%");
 
     // Lookup helper
     function getValue(stateCode, year) {
@@ -142,8 +143,13 @@ d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", function (error, csvData
                         .html(`<strong>${rawName}</strong><br>Year: ${currentYear}<br>Fines: ${value.toLocaleString()}`);
                 })
                 .on("mousemove", () => {
-                    tooltip.style("left", (d3.event.pageX + 10) + "px")
-                        .style("top", (d3.event.pageY - 28) + "px");
+                    // compute page coords then convert to container-local coords
+                    const pageX = d3.event.pageX || (d3.event.clientX + window.scrollX);
+                    const pageY = d3.event.pageY || (d3.event.clientY + window.scrollY);
+                    const containerRect = document.getElementById('container').getBoundingClientRect();
+                    const left = pageX - containerRect.left + 10;
+                    const top = pageY - containerRect.top - 28;
+                    tooltip.style("left", left + "px").style("top", top + "px");
                 })
                 .on("mouseout", () => tooltip.style("opacity", 0));
 
