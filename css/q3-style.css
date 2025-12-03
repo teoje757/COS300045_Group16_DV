@@ -95,7 +95,7 @@ body {
 
 .container {
     /* Narrower content column so charts and text appear smaller and centered */
-    max-width: 980px;
+    max-width: 900px;
     margin: 0 auto;
     margin-left: 80px; /* leave space for left nav */
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -104,7 +104,7 @@ body {
 .visualization-container {
     background: #FCFAF9;
     border-radius: 8px;
-    padding: 30px; /* reduced padding to better fit smaller container */
+    padding: 24px; /* reduced padding to better fit smaller container */
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     position: relative;
 }
