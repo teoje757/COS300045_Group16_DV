@@ -1001,4 +1001,24 @@ window.addEventListener('resize', () => {
         d3.selectAll('.peak-info-box').remove();
         createChart();
     }, 250);
+
+
+// ======================================================
+// NAVIGATION AUTO-DETECTION
+// ======================================================
+document.addEventListener('DOMContentLoaded', function() {
+    // Get current page filename
+    const currentPage = window.location.pathname.split('/').pop().replace('.html', '') || 'index';
+    
+    // Remove all active classes
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.remove('active');
+    });
+    
+    // Add active class to current page
+    const activeItem = document.querySelector(`[data-page="${currentPage}"]`);
+    if (activeItem) {
+        activeItem.classList.add('active');
+    }
+});
 });
