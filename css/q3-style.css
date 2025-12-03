@@ -624,6 +624,9 @@ footer {
         font-size: 2.3rem; /* keep large-screen title sizing */
     }
 }
+
+@media (max-width: 480px) {
+    .visualization-container {
         padding: 12px;
     }
 

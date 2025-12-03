@@ -1,5 +1,13 @@
 /* Q2 Visualization Styles */
 
+body {
+    background: #f0f4f8;
+    min-height: 100vh;
+    margin: 0;
+    padding: 20px;
+    position: relative;
+}
+
 /* --- Main chart container --- */
 #chart {
     width: 100%;
