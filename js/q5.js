@@ -1,6 +1,5 @@
 // ======================================================
-// q5.js - COMPLETE FILE
-// Australia State Heatmap – Fully Fixed + Rewritten
+// Australia State Heatmap — Fully Fixed + Rewritten
 // ======================================================
 
 // Global state
@@ -12,14 +11,14 @@ let svg;
 let dataMap = {};
 
 // Dimensions
-const w = 520;
-const h = 400;
+const w = 1100; // Increased from 850 to match card width
+const h = 700;
 
 // Projection
 const projection = d3.geo.mercator()
     .center([132, -28])
     .translate([w / 2, h / 2])
-    .scale(600);
+    .scale(1000);
 
 const path = d3.geo.path().projection(projection);
 
@@ -62,10 +61,10 @@ d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", function (error, csvData
     const allValues = csvData.map(d => +d.FINES);
     const maxValue = d3.max(allValues);
 
-    // Color scale - using gradient from mint to dragonfruit
+    // Color scale
     colorScale = d3.scale.linear()
         .domain([0, maxValue])
-        .range(["#BEDEDA", "#E14C70"])
+        .range(["#ffffcc", "#800026"])
         .interpolate(d3.interpolateHcl);
 
     // Create SVG
@@ -138,48 +137,14 @@ d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", function (error, csvData
                     const rawName = d.properties.STATE_NAME || d.properties.STE_NAME16;
                     const stateCode = geoToCsv[rawName];
                     const value = getValue(stateCode, currentYear);
-                    tooltip.html(`<strong>${rawName}</strong><br>Year: ${currentYear}<br>Fines: ${value.toLocaleString()}`);
 
-                    // Debug: log hover
-                    // console.log('hover', rawName);
-
-                    // Position tooltip above the state's centroid (hover over the section)
-                    const centroid = path.centroid(d); // [x, y] relative to SVG
-                    const svgRect = svg.node().getBoundingClientRect();
-                    const tooltipNode = tooltip.node();
-
-                    // Ensure tooltip is visible to measure
-                    tooltip.style("opacity", 1).style("left", "-9999px").style("top", "-9999px");
-                    const tooltipWidth = tooltipNode.offsetWidth || 120;
-                    const tooltipHeight = tooltipNode.offsetHeight || 40;
-
-                    let left, top;
-
-                    // If centroid is invalid (NaN), fall back to mouse event coordinates
-                    if (!isFinite(centroid[0]) || !isFinite(centroid[1])) {
-                        const pageX = (d3.event && d3.event.pageX) ? d3.event.pageX : (d3.event && d3.event.clientX ? d3.event.clientX + window.scrollX : svgRect.left + svgRect.width/2);
-                        const pageY = (d3.event && d3.event.pageY) ? d3.event.pageY : (d3.event && d3.event.clientY ? d3.event.clientY + window.scrollY : svgRect.top + svgRect.height/2);
-
-                        left = Math.round(pageX - tooltipWidth / 2);
-                        top = Math.round(pageY - tooltipHeight - 12);
-                    } else {
-                        left = Math.round(svgRect.left + centroid[0] - tooltipWidth / 2);
-                        top = Math.round(svgRect.top + centroid[1] - tooltipHeight - 12);
-                    }
-
-                    // Constrain within container (page coordinates)
-                    const containerRect = document.getElementById("container").getBoundingClientRect();
-                    if (left < containerRect.left + 8) left = containerRect.left + 8;
-                    if (left + tooltipWidth > containerRect.right - 8) left = containerRect.right - tooltipWidth - 8;
-                    if (top < containerRect.top + 8) top = containerRect.top + 8;
-
-                    // Convert page coordinates to container-local coordinates (tooltip is positioned absolute inside .container)
-                    const relLeft = left - containerRect.left;
-                    const relTop = top - containerRect.top;
-
-                    tooltip.style("left", relLeft + "px").style("top", relTop + "px");
+                    tooltip.style("opacity", 1)
+                        .html(`<strong>${rawName}</strong><br>Year: ${currentYear}<br>Fines: ${value.toLocaleString()}`);
                 })
-                .on("mousemove", null)
+                .on("mousemove", () => {
+                    tooltip.style("left", (d3.event.pageX + 10) + "px")
+                        .style("top", (d3.event.pageY - 28) + "px");
+                })
                 .on("mouseout", () => tooltip.style("opacity", 0));
 
             // --------------------------------------------------
@@ -193,29 +158,25 @@ d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", function (error, csvData
                 .attr("text-anchor", "middle")
                 .attr("dy", ".35em")
                 .attr("transform", d => "translate(" + path.centroid(d) + ")")
-                .attr("font-size", "10px")
+                .attr("font-size", "14px")
                 .attr("font-weight", "bold")
-                .attr("fill", "#1e3a5f")
+                .attr("fill", "#333")
                 .text(d => {
                     const rawName = d.properties.STATE_NAME || d.properties.STE_NAME16;
                     return geoToCsv[rawName];
                 });
 
             // --------------------------------------------------
-            // LEGEND - TOP LEFT
+            // LEGEND BELOW SLIDER
             // --------------------------------------------------
             const legendSvg = d3.select("#legendContainer")
                 .append("svg")
-                .attr("width", 100)
-                .attr("height", 120);
+                .attr("width", 320)
+                .attr("height", 60);
 
             const defs = legendSvg.append("defs");
             const gradient = defs.append("linearGradient")
-                .attr("id", "legend-gradient")
-                .attr("x1", "0%")
-                .attr("y1", "100%")
-                .attr("x2", "0%")
-                .attr("y2", "0%");
+                .attr("id", "legend-gradient");
 
             gradient.selectAll("stop")
                 .data(colorScale.range())
@@ -227,28 +188,24 @@ d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", function (error, csvData
             const legend = legendSvg.append("g")
                 .attr("transform", "translate(10, 10)");
 
-            // Vertical rectangle for legend
             legend.append("rect")
-                .attr("width", 25)
-                .attr("height", 80)
+                .attr("width", 300)
+                .attr("height", 20)
                 .style("fill", "url(#legend-gradient)")
-                .style("stroke", "#333")
-                .style("stroke-width", "1px");
+                .style("stroke", "#333");
 
             const legendScale = d3.scale.linear()
-                .domain([maxValue, 0])
-                .range([0, 80]);
+                .domain([0, maxValue])
+                .range([0, 300]);
 
             const legendAxis = d3.svg.axis()
                 .scale(legendScale)
-                .orient("right")
-                .ticks(4)
+                .orient("bottom")
+                .ticks(5)
                 .tickFormat(d3.format(".2s"));
 
             legend.append("g")
-                .attr("transform", "translate(25, 0)")
-                .attr("class", "legend-axis")
-                .style("font-size", "9px")
+                .attr("transform", "translate(0, 20)")
                 .call(legendAxis);
 
             // ======================================================
@@ -288,23 +245,4 @@ d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", function (error, csvData
             });
         }
     );
-});
-
-// ======================================================
-// NAVIGATION AUTO-DETECTION
-// ======================================================
-document.addEventListener('DOMContentLoaded', function() {
-    // Get current page filename
-    const currentPage = window.location.pathname.split('/').pop().replace('.html', '') || 'index';
-    
-    // Remove all active classes
-    document.querySelectorAll('.nav-item').forEach(item => {
-        item.classList.remove('active');
-    });
-    
-    // Add active class to current page
-    const activeItem = document.querySelector(`[data-page="${currentPage}"]`);
-    if (activeItem) {
-        activeItem.classList.add('active');
-    }
 });
