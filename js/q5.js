@@ -145,17 +145,10 @@ d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", function (error, csvData
                 .on("mousemove", () => {
                     const pageX = d3.event.pageX || d3.event.clientX + window.scrollX;
                     const pageY = d3.event.pageY || d3.event.clientY + window.scrollY;
-                    const tooltipNode = tooltip.node();
-                    tooltip.style("left", "-9999px").style("top", "-9999px");
-                    const tw = tooltipNode.offsetWidth || 120;
-                    const th = tooltipNode.offsetHeight || 40;
                     const containerRect = document.getElementById('container').getBoundingClientRect();
                     let left = pageX - containerRect.left + 10;
-                    let top = pageY - containerRect.top - th - 12;
-                    if (left < 8) left = 8;
-                    if (left + tw > containerRect.width - 8) left = containerRect.width - tw - 8;
-                    if (top < 8) top = 8;
-                    tooltip.style("left", left + "px").style("top", top + "px");
+                    let top = pageY - containerRect.top - 28;
+                    tooltip.style("left", Math.max(5, left) + "px").style("top", Math.max(5, top) + "px");
                 })
                 .on("mouseout", () => tooltip.style("opacity", 0));
 
