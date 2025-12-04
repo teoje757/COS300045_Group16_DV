@@ -159,17 +159,13 @@ d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", function (error, csvData
                     const screenX = centroid[0] * scale;
                     const screenY = centroid[1] * scale;
                     
-                    // Get current scroll position of the page
-                    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-                    const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
-                    
-                    // Convert to page coordinates (use clientX/Y which are relative to viewport)
-                    const pageX = svgRect.left + screenX + scrollLeft;
-                    const pageY = svgRect.top + screenY + scrollTop;
+                    // Calculate position relative to viewport (not page)
+                    const viewportX = svgRect.left + screenX;
+                    const viewportY = svgRect.top + screenY;
                     
                     // Position tooltip centered above the state
-                    tooltip.style("left", pageX + "px")
-                           .style("top", (pageY - 50) + "px");
+                    tooltip.style("left", viewportX + "px")
+                           .style("top", (viewportY - 50) + "px");
                 })
                 .on("mouseout", () => tooltip.style("opacity", 0));
 
