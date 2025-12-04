@@ -5,16 +5,49 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Q5: Australia Heatmap</title>
 
-    <!-- Poppins & Lora Fonts (match other pages) -->
+    <!-- Poppins & Lora Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Lora:wght@400&display=swap" rel="stylesheet">
 
     <link rel="stylesheet" href="css/q5-style.css">
     <link rel="stylesheet" href="css/nav.css">
 
-    <!-- D3 v3 (q5.js uses v3-style APIs) -->
+    <!-- D3 v3 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
+
+    <style>
+        /* ================================
+           BACK BUTTON (Option A Pastel)
+        ================================ */
+        .back-button-container {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 999;
+        }
+
+        .back-button {
+            font-family: 'Poppins', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            padding: 8px 14px;
+            background: #C8F7F0;   /* pastel mint */
+            color: #2F5BA3;        /* indigo */
+            border: 1px solid #7DDDE2; /* teal border */
+            border-radius: 8px;
+            text-decoration: none;
+            transition: 0.25s;
+            display: inline-block;
+        }
+
+        .back-button:hover {
+            background: #7DDDE2;
+            color: white;
+        }
+    </style>
+
 </head>
 <body>
+
     <!-- Navigation Bar -->
     <nav class="nav-container">
         <a href="index.html" class="nav-item" data-page="index">
@@ -29,13 +62,26 @@
     </nav>
 
     <div class="container">
+
         <div class="visualization-container">
+
             <div class="header" style="text-align:center; margin-bottom: 30px;">
-                <h1 id="dynamic-title" class="main-title chart-title">Mobile Phone Enforcement Patterns Across Australia</h1>
-                <p id="dynamic-subtitle" class="chart-subtitle">Interactive visualization showing mobile phone enforcement fines by state from 2008 to 2024. Explore temporal patterns and regional variations using the controls below.</p>
+
+                <!-- ⭐ NEW BACK BUTTON (Option A) ⭐ -->
+                <div class="back-button-container">
+                    <a href="q5.html" class="back-button">← Back</a>
+                </div>
+
+                <h1 id="dynamic-title" class="main-title chart-title">
+                    Mobile Phone Enforcement Patterns Across Australia
+                </h1>
+
+                <p id="dynamic-subtitle" class="chart-subtitle">
+                    Interactive visualization showing mobile phone enforcement fines by state from 2008 to 2024. Explore temporal patterns and regional variations using the controls below.
+                </p>
             </div>
 
-            <!-- Legend positioned top left -->
+            <!-- Legend -->
             <div id="legendContainer"></div>
 
             <div id="controls">
@@ -49,14 +95,17 @@
             <div id="svganchor"></div>
             <div id="tooltip" class="tooltip"></div>
 
-            <p class="source-note">Source: Australian Bureau of Statistics | Data shows mobile phone enforcement patterns by state (2008–2024)</p>
+            <p class="source-note">
+                Source: Australian Bureau of Statistics | Data shows mobile phone enforcement patterns by state (2008–2024)
+            </p>
+
         </div>
     </div>
 
     <script src="js/q5.js"></script>
 
     <script>
-        // Navigation auto-detection (mark active nav item)
+        // Navigation auto-detection
         document.addEventListener('DOMContentLoaded', function() {
             const currentPage = window.location.pathname.split('/').pop().replace('.html','') || 'index';
             document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
@@ -64,5 +113,6 @@
             if (active) active.classList.add('active');
         });
     </script>
+
 </body>
 </html>
