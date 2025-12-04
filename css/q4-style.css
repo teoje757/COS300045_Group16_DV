@@ -8,6 +8,36 @@ body {
     position: relative;
 }
 
+/* Q5-consistent typography */
+h1 {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    color: #1e3a5f;
+    font-size: 28px;
+    margin: 10px 0 5px 0;
+    text-align: center;
+    letter-spacing: -0.5px;
+}
+
+.subtitle {
+    font-size: 14px;
+    margin: 5px 0 15px 0;
+    color: #666;
+    text-align: center;
+    font-family: 'Lora', serif;
+    font-weight: 400;
+    line-height: 1.5;
+}
+
+p {
+    font-size: 12px;
+    margin: 5px 0;
+    color: #444;
+    text-align: center;
+    font-family: 'Lora', serif;
+    font-weight: 400;
+}
+
 /* Navigation Buttons */
 .back-btn,
 .next-btn {
@@ -35,7 +65,7 @@ body {
     z-index: 10;
 }
 
-.back-btn { left: 20px; }
+.back-btn { left: 100px; }
 .next-btn { right: 20px; }
 
 .back-arrow,
@@ -82,16 +112,12 @@ body {
     cursor: wait;
 }
 
-.container {
-    max-width: 1200px;
-    margin: 0 auto;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
+/* `.container` is defined globally in `css/style.css` to ensure consistent sizing across pages. */
 
 .visualization-container {
     background: #FCFAF9;
     border-radius: 8px;
-    padding: 40px;
+    padding: 24px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     position: relative;
 }
@@ -121,6 +147,26 @@ body {
     font-weight: 400;
     letter-spacing: 0.01em;
     line-height: 1.5;
+}
+
+/* Chart title/subtitle used in header blocks */
+.chart-title {
+    font-family: 'Poppins', sans-serif;
+    margin: 0 0 10px 0;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #2a3a4d;
+    text-align: center;
+}
+
+.chart-subtitle {
+    margin: 0 0 8px 0;
+    font-size: 1.13rem;
+    color: #333;
+    max-width: 700px;
+    display: inline-block;
+    text-align: center;
+    font-weight: 400;
 }
 
 /* Controls */

@@ -1,4 +1,55 @@
-/* Q1 Visualization Styles */
+/* ================================
+   Q1 Visualization Styles
+================================ */
+
+/* Base font styles */
+body {
+    background: #f0f4f8;
+    min-height: 100vh;
+    margin: 0;
+    padding: 20px;
+    position: relative;
+    font-family: 'Lora', serif;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+}
+
+/* Q5-consistent typography */
+h1 {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    color: #1e3a5f;
+    font-size: 28px;
+    margin: 10px 0 5px 0;
+    text-align: center;
+    letter-spacing: -0.5px;
+}
+
+.subtitle {
+    font-size: 14px;
+    margin: 5px 0 15px 0;
+    color: #666;
+    text-align: center;
+    font-family: 'Lora', serif;
+    font-weight: 400;
+    line-height: 1.5;
+}
+
+p {
+    font-size: 12px;
+    margin: 5px 0;
+    color: #444;
+    text-align: center;
+    font-family: 'Lora', serif;
+    font-weight: 400;
+}
+
+/* `.container` is defined globally in `css/style.css` to ensure consistent sizing across pages. */
+
+
 #chart {
     width: 100%;
     min-height: auto;
@@ -8,6 +59,7 @@
     border-radius: 8px;
     box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
     overflow: visible;
+    font-family: 'Lora', serif;
 }
 
 #legend {
@@ -44,6 +96,7 @@
     font-weight: 600;
     color: #2c3e50;
     letter-spacing: 0.3px;
+    font-family: 'Poppins', sans-serif;
 }
 
 .axis-label {
@@ -64,6 +117,7 @@
     font-size: 13px;
     fill: #4b5563;
     font-weight: 500;
+    font-family: 'Lora', serif;
 }
 
 .grid line {
@@ -161,7 +215,7 @@
     z-index: 100;
     width: 48px;
     height: 48px;
-    background: #f8fafc; /* default: white/very light */
+    background: #f8fafc;
     border-radius: 50%;
     box-shadow: 0 2px 8px rgba(44,62,80,0.07);
     display: flex;
@@ -174,20 +228,20 @@
 }
 
 .next-btn:hover {
-    background: #2196f3; /* blue on hover */
+    background: #2196f3;
     box-shadow: 0 4px 16px rgba(44,62,80,0.13);
 }
 
 .next-arrow {
     font-size: 1.6rem;
-    color: #2a3a4d; /* dark text by default */
+    color: #2a3a4d;
     display: inline-block;
     transition: transform 0.18s, color 0.18s;
 }
 
 .next-btn:hover .next-arrow {
     transform: translateX(3px);
-    color: #fff; /* white arrow on blue */
+    color: #fff;
 }
 
 @media (max-width: 700px) {

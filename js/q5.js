@@ -1,6 +1,5 @@
 // ======================================================
-// q5.js - COMPLETE FILE
-// Australia State Heatmap – Fully Fixed + Rewritten
+// Australia State Heatmap – Tooltip position fixed relative to offsetParent
 // ======================================================
 
 // Global state
@@ -12,21 +11,21 @@ let svg;
 let dataMap = {};
 
 // Dimensions
-const w = 520;
-const h = 400;
+const w = 1100; // viewBox width
+const h = 700;  // viewBox height
 
-// Projection
+// Projection (d3v3 style)
 const projection = d3.geo.mercator()
     .center([132, -28])
     .translate([w / 2, h / 2])
-    .scale(600);
+    .scale(1000);
 
 const path = d3.geo.path().projection(projection);
 
-// Tooltip
+// Tooltip selection
 const tooltip = d3.select("#tooltip");
 
-// Correct mapping: GeoJSON → CSV jurisdiction codes
+// Geo → CSV codes mapping
 const geoToCsv = {
     "New South Wales": "NSW",
     "Victoria": "VIC",
@@ -62,17 +61,20 @@ d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", function (error, csvData
     const allValues = csvData.map(d => +d.FINES);
     const maxValue = d3.max(allValues);
 
-    // Color scale - using gradient from mint to dragonfruit
+    // Color scale
     colorScale = d3.scale.linear()
-        .domain([0, maxValue])
-        .range(["#BEDEDA", "#E14C70"])
-        .interpolate(d3.interpolateHcl);
+    .domain([0, maxValue * 0.33, maxValue * 0.66, maxValue])
+    .range(["#C8F7F0", "#7DDDE2", "#4AA8E0", "#2F5BA3"])
+    .interpolate(d3.interpolateHcl);
 
-    // Create SVG
+
+
+    // Create responsive SVG using viewBox
     svg = d3.select("#svganchor")
         .append("svg")
-        .attr("width", w)
-        .attr("height", h);
+        .attr("viewBox", "0 0 " + w + " " + h)
+        .attr("preserveAspectRatio", "xMidYMid meet")
+        .attr("width", "100%");
 
     // Lookup helper
     function getValue(stateCode, year) {
@@ -142,34 +144,74 @@ d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", function (error, csvData
                     tooltip.style("opacity", 1)
                         .html(`<strong>${rawName}</strong><br>Year: ${currentYear}<br>Fines: ${value.toLocaleString()}`);
                 })
-                .on("mousemove", () => {
-                    const containerRect = document.getElementById("container").getBoundingClientRect();
-                    const tooltipNode = tooltip.node();
-                    const tooltipWidth = tooltipNode.offsetWidth;
-                    const tooltipHeight = tooltipNode.offsetHeight;
-                    
-                    let left = d3.event.pageX + 10;
-                    let top = d3.event.pageY - 28;
-                    
-                    // Check if tooltip goes beyond right edge
-                    if (left + tooltipWidth > containerRect.right) {
-                        left = d3.event.pageX - tooltipWidth - 10;
+
+                // ---------------------------
+                // Robust tooltip positioning:
+                // compute position relative to tooltip.offsetParent
+                // ---------------------------
+                .on("mousemove", function(d) {
+                    // 1) centroid in SVG viewBox coordinates
+                    const centroid = path.centroid(d); // [x, y] in viewBox coords
+
+                    // 2) find bounding rects
+                    const svgNode = svg.node();
+                    const svgRect = svgNode.getBoundingClientRect(); // relative to viewport
+
+                    // determine the actual scale factor (width)
+                    const actualWidth = svgRect.width;
+                    const scale = actualWidth / w; // viewBox width -> actual pixels
+
+                    // centroid in page (document) coordinates:
+                    const xInViewport = svgRect.left + centroid[0] * scale;
+                    const yInViewport = svgRect.top + centroid[1] * scale;
+
+                    // convert viewport coords to document coords
+                    const xInDocument = xInViewport + window.scrollX;
+                    const yInDocument = yInViewport + window.scrollY;
+
+                    // 3) compute coordinates relative to tooltip's offsetParent
+                    // tooltip.offsetParent is the element that CSS absolute positioning uses
+                    const ttNode = tooltip.node();
+                    const offsetParent = ttNode.offsetParent || document.body;
+                    const parentRect = offsetParent.getBoundingClientRect();
+                    const parentDocLeft = parentRect.left + window.scrollX;
+                    const parentDocTop = parentRect.top + window.scrollY;
+
+                    // position inside offsetParent (taking its scroll into account)
+                    const relativeLeft = xInDocument - parentDocLeft + offsetParent.scrollLeft;
+                    const relativeTop = yInDocument - parentDocTop + offsetParent.scrollTop;
+
+                    // measure tooltip size (after content set)
+                    const ttW = ttNode.offsetWidth;
+                    const ttH = ttNode.offsetHeight;
+
+                    // final position: center horizontally, place above the centroid
+                    let finalLeft = relativeLeft - (ttW / 2);
+                    let finalTop = relativeTop - ttH - 12; // 12px gap above the centroid
+
+                    // Clamp so tooltip stays inside offsetParent padding
+                    const pad = 8;
+                    const maxLeft = offsetParent.clientWidth - ttW - pad;
+                    if (finalLeft < pad) finalLeft = pad;
+                    if (finalLeft > maxLeft) finalLeft = maxLeft;
+
+                    // If finalTop would go above the top of the parent, flip to below centroid
+                    const minTop = pad;
+                    if (finalTop < minTop) {
+                        finalTop = relativeTop + 12; // place below centroid if not enough space
+                        // ensure it won't overflow bottom
+                        const maxTop = offsetParent.clientHeight - ttH - pad;
+                        if (finalTop > maxTop) finalTop = maxTop;
                     }
-                    
-                    // Check if tooltip goes beyond bottom edge
-                    if (top + tooltipHeight > containerRect.bottom) {
-                        top = d3.event.pageY - tooltipHeight - 10;
-                    }
-                    
-                    // Check if tooltip goes beyond top edge
-                    if (top < containerRect.top) {
-                        top = d3.event.pageY + 10;
-                    }
-                    
-                    tooltip.style("left", left + "px")
-                        .style("top", top + "px");
+
+                    // Apply styles (position is relative to offsetParent)
+                    tooltip.style("left", finalLeft + "px")
+                           .style("top", finalTop + "px");
                 })
-                .on("mouseout", () => tooltip.style("opacity", 0));
+
+                .on("mouseout", function () {
+                    tooltip.style("opacity", 0);
+                });
 
             // --------------------------------------------------
             // STATE LABELS
@@ -182,62 +224,62 @@ d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", function (error, csvData
                 .attr("text-anchor", "middle")
                 .attr("dy", ".35em")
                 .attr("transform", d => "translate(" + path.centroid(d) + ")")
-                .attr("font-size", "10px")
+                .attr("font-size", "14px")
                 .attr("font-weight", "bold")
-                .attr("fill", "#1e3a5f")
+                .attr("fill", "#333")
                 .text(d => {
                     const rawName = d.properties.STATE_NAME || d.properties.STE_NAME16;
                     return geoToCsv[rawName];
                 });
 
             // --------------------------------------------------
-            // LEGEND - TOP LEFT
+            // LEGEND
             // --------------------------------------------------
             const legendSvg = d3.select("#legendContainer")
                 .append("svg")
-                .attr("width", 100)
-                .attr("height", 120);
+                .attr("width", 320)
+                .attr("height", 60);
 
             const defs = legendSvg.append("defs");
             const gradient = defs.append("linearGradient")
-                .attr("id", "legend-gradient")
-                .attr("x1", "0%")
-                .attr("y1", "100%")
-                .attr("x2", "0%")
-                .attr("y2", "0%");
+                .attr("id", "legend-gradient");
+
+            // -----------------------------
+            // LEGEND GRADIENT (4-color scale)
+            // -----------------------------
+            const legendColors = ["#C8F7F0", "#7DDDE2", "#4AA8E0", "#2F5BA3"];
 
             gradient.selectAll("stop")
-                .data(colorScale.range())
+                .data(legendColors)
                 .enter()
                 .append("stop")
-                .attr("offset", (d, i) => i / (colorScale.range().length - 1))
+                .attr("offset", (d, i) => i / (legendColors.length - 1))
                 .attr("stop-color", d => d);
+
+
+
 
             const legend = legendSvg.append("g")
                 .attr("transform", "translate(10, 10)");
 
-            // Vertical rectangle for legend
             legend.append("rect")
-                .attr("width", 25)
-                .attr("height", 80)
+                .attr("width", 300)
+                .attr("height", 20)
                 .style("fill", "url(#legend-gradient)")
-                .style("stroke", "#333")
-                .style("stroke-width", "1px");
+                .style("stroke", "#333");
 
             const legendScale = d3.scale.linear()
-                .domain([maxValue, 0])
-                .range([0, 80]);
+                .domain([0, maxValue])
+                .range([0, 300]);
 
             const legendAxis = d3.svg.axis()
                 .scale(legendScale)
-                .orient("right")
+                .orient("bottom")
                 .ticks(4)
                 .tickFormat(d3.format(".2s"));
 
             legend.append("g")
-                .attr("transform", "translate(25, 0)")
-                .attr("class", "legend-axis")
-                .style("font-size", "9px")
+                .attr("transform", "translate(0, 20)")
                 .call(legendAxis);
 
             // ======================================================
@@ -277,23 +319,4 @@ d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", function (error, csvData
             });
         }
     );
-});
-
-// ======================================================
-// NAVIGATION AUTO-DETECTION
-// ======================================================
-document.addEventListener('DOMContentLoaded', function() {
-    // Get current page filename
-    const currentPage = window.location.pathname.split('/').pop().replace('.html', '') || 'index';
-    
-    // Remove all active classes
-    document.querySelectorAll('.nav-item').forEach(item => {
-        item.classList.remove('active');
-    });
-    
-    // Add active class to current page
-    const activeItem = document.querySelector(`[data-page="${currentPage}"]`);
-    if (activeItem) {
-        activeItem.classList.add('active');
-    }
 });

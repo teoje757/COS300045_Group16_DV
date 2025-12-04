@@ -1,293 +1,356 @@
-/* ================================
-   q5-style.css - COMPLETE FILE
-================================ */
+/* q5-style.css – Complete styling to match Q4 layout */
 
 /* ================================
-   Navigation Bar Styles
+   GLOBAL RESETS & BASE STYLES
 ================================ */
-.nav-container {
-    width: 80px;
-    background: white;
-    border-radius: 0 25px 25px 0;
-    padding: 20px 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.1);
-    position: fixed;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    z-index: 1000;
-}
-
-.nav-item {
-    width: 50px;
-    height: 50px;
-    background: rgba(255, 255, 255, 0.15);
-    border-radius: 15px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 10px 0;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    text-decoration: none;
-    color: #6366f1;
-    font-size: 20px;
-    font-weight: 600;
-    position: relative;
-}
-
-.nav-item:hover {
-    background: rgba(255, 255, 255, 0.25);
-    transform: translateX(5px);
-}
-
-.nav-item.active {
-    background: #6366f1;
-    color: white;
-    box-shadow: 0 4px 15px rgba(255, 255, 255, 0.3);
-}
-
-.nav-item.active::before {
-    content: '';
-    position: absolute;
-    left: -10px;
-    width: 4px;
-    height: 30px;
-    background: #6366f1;
-    border-radius: 0 4px 4px 0;
-}
-
-.nav-icon {
-    font-size: 24px;
-}
-
-.icon-home::before {
-    content: '🏠';
-}
-
-.icon-q::before {
-    content: attr(data-q);
-}
-
-.nav-item .nav-tooltip {
-    position: absolute;
-    left: 70px;
-    background: rgba(0, 0, 0, 0.8);
-    color: white;
-    padding: 8px 12px;
-    border-radius: 8px;
-    font-size: 12px;
-    white-space: nowrap;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.3s ease;
-    font-family: 'Poppins', sans-serif;
-}
-
-.nav-item:hover .nav-tooltip {
-    opacity: 1;
-}
-
-/* ================================
-   Global Layout
-================================ */
-body {
+* {
     margin: 0;
     padding: 0;
-    background-color: #f5f5f5;
+    box-sizing: border-box;
+}
+
+body {
     font-family: 'Lora', serif;
-    font-weight: 400;
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    overflow: hidden;
+    line-height: 1.6;
+    color: #333;
+    background-color: #f0f4f8;
+    min-height: 100vh;
+    margin: 0;
+    padding: 20px;
+    position: relative;
+    overflow-x: hidden;
 }
 
 /* ================================
-   Container
+   CONTAINER - Match Q4 Structure
 ================================ */
-#container {
+.container {
     width: 95%;
-    max-width: 1300px;
+    max-width: 900px;
     height: 95vh;
     max-height: 900px;
-    margin: 0 auto;
-    padding: 20px 30px;
+    margin: 12px auto;
+    margin-left: calc(80px + 12px); /* Reserve space for left nav + offset */
+    padding: 12px 20px;
     background-color: white;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    overflow-y: auto;
     border-radius: 12px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
     position: relative;
 }
 
-#legendContainer {
-    position: absolute;
-    top: 100px;
-    left: 40px;
-    z-index: 10;
-}
-
-#legendContainer svg {
-    display: block;
-    width: 100px;
-    height: 120px;
-}
-
-
 /* ================================
-   Typography
+   VISUALIZATION CONTAINER
 ================================ */
-h1 {
-    font-family: 'Poppins', sans-serif;
-    font-weight: 700;
-    color: #1e3a5f;
-    font-size: 28px;
-    margin: 10px 0 5px 0;
-    text-align: center;
-    letter-spacing: -0.5px;
-}
-
-.subtitle {
-    font-size: 14px;
-    margin: 5px 0 15px 0;
-    color: #666;
-    text-align: center;
-    font-family: 'Lora', serif;
-    font-weight: 400;
-    line-height: 1.5;
-}
-
-p {
-    font-size: 12px;
-    margin: 5px 0;
-    color: #444;
-    text-align: center;
-    font-family: 'Lora', serif;
-    font-weight: 400;
-}
-
-.source-note {
-    margin-top: 10px;
-    font-size: 10px;
-    color: #888;
-    text-align: center;
-    font-style: italic;
+.visualization-container {
+    background: #FCFAF9;
+    border-radius: 8px;
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    position: relative;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
 }
 
 /* ================================
-   Controls
+   TYPOGRAPHY - Match Q4 Exactly
+================================ */
+.header {
+    text-align: center;
+    margin-bottom: 30px;
+    padding: 0 60px 20px 60px;
+    border-bottom: 2px solid #e5e7eb;
+}
+
+.main-title {
+    font-family: 'Poppins', sans-serif;
+    font-size: 2rem !important;
+    font-weight: 700 !important;
+    color: #2a3a4d !important;
+    margin: 0 0 8px 0;
+    letter-spacing: 0.01em;
+    line-height: 1.2;
+    text-align: center;
+}
+
+.chart-title {
+    font-family: 'Poppins', sans-serif;
+    margin: 0 0 10px 0;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #2a3a4d;
+    text-align: center;
+}
+
+.chart-subtitle {
+    margin: 0 0 8px 0;
+    font-size: 1.13rem;
+    color: #333;
+    max-width: 700px;
+    display: inline-block;
+    text-align: center;
+    font-weight: 400;
+    font-family: 'Lora', serif;
+}
+
+/* ================================
+   CONTROLS - Match Q4 Style
 ================================ */
 #controls {
-    margin: 5px 0;
     text-align: center;
+    margin: 12px 0 18px;
+    padding: 16px;
+    background: #FCFAF9;
+    border-radius: 6px;
+    border: 1px solid #e5e7eb;
+}
+
+#controls button {
+    background: #f0f4f8;
+    border: 1px solid #cbd5e0;
+    color: #4a5568;
+    cursor: pointer;
+    font-size: 13px;
+    padding: 8px 16px;
+    border-radius: 6px;
+    margin: 0 6px;
+    transition: all 0.3s;
+    font-weight: 500;
+    font-family: 'Poppins', sans-serif;
+}
+
+#controls button:hover {
+    background: #3498db;
+    color: white;
+    border-color: #3498db;
 }
 
 #yearDisplay {
     font-family: 'Poppins', sans-serif;
-    font-size: 14px;
+    font-size: 16px;
     font-weight: 700;
     color: #1e3a5f;
-    margin: 5px 0;
+    margin: 10px 0;
+    display: block;
 }
 
-/* Slider styling */
 #yearSlider {
-    width: 220px;
-    max-width: 50%;
-    margin-top: 3px;
+    width: 300px;
+    margin: 10px auto;
+    display: block;
 }
 
 /* ================================
-   Buttons
+   LEGEND - Position Top Left
 ================================ */
-button {
-    padding: 5px 14px;
-    margin: 0 4px;
-    background-color: #54ADD4;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-family: 'Lora', serif;
-    font-size: 12px;
-    transition: 0.2s ease-in-out;
+#legendContainer {
+    position: absolute;
+    top: 140px;
+    left: 24px;
+    z-index: 10;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 12px 16px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
-button:hover {
-    background-color: #1e3a5f;
+#legendContainer svg {
+    display: block;
 }
 
-button:disabled {
-    background-color: #ccc;
-    cursor: not-allowed;
+/* 🔤 Apply Poppins font to ALL text inside legend SVG */
+#legendContainer text {
+    font-family: 'Poppins', sans-serif !important;
+    fill: #2F5BA3;              
+    font-weight: 600;          
+    font-size: 12px;            
 }
+
 
 /* ================================
-   Map Elements
+   SVG AND MAP CONTAINER
 ================================ */
 #svganchor {
     display: flex;
     justify-content: center;
     align-items: center;
     flex: 1;
-    overflow: hidden;
+    overflow: visible;
+    margin: 20px 0;
 }
 
-svg {
-    background-color: white;
+#svganchor svg {
     max-width: 100%;
-    max-height: 100%;
+    height: auto;
 }
 
 .state-path {
-    stroke: #1e3a5f;
-    stroke-width: 1.5px;
-    transition: all 0.3s;
-    cursor: pointer;
+    stroke: none;
 }
 
 .state-path:hover {
-    opacity: 0.8;
-    stroke-width: 2.4px;
+    stroke: #ffffff;
+    stroke-width: 2;
 }
 
-/* Legend */
-.legend {
-    font-size: 9px;
+
+.state-label {
+    pointer-events: none;
+    font-family: 'Poppins', sans-serif !important;
+    fill: #2F5BA3; /* optional: matches pastel theme */
+    text-shadow: 0 0 3px rgba(255, 255, 255, 0.8);
 }
+
 
 /* ================================
-   Tooltip
+   TOOLTIP - Match Q4 Style
 ================================ */
 .tooltip {
     position: absolute;
+    background:#2F5BA3;             
+    color: #ffffff;                
+    border: 1px solid #7DDDE2;         
     padding: 10px 14px;
-    background: #1e3a5f;
-    color: white;
-    border-radius: 6px;
+    border-radius: 8px;
+    font-size: 13px;
     pointer-events: none;
     opacity: 0;
-    font-family: 'Lora', serif;
+    transition: opacity 0.25s;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    font-family: 'Poppins', sans-serif;
+    line-height: 1.6;
+    white-space: nowrap;
+    transform: translateX(-50%);
+}
+
+
+.tooltip strong {
+    font-weight: 600;
     font-size: 14px;
-    z-index: 999;
-    transition: opacity 0.15s ease-in-out;
 }
 
 /* ================================
-   Loading Message
+   LOADING STATE
 ================================ */
 #loading {
     text-align: center;
-    padding: 20px;
-    color: #1e3a5f;
+    padding: 40px;
+    color: #6b7280;
+    font-family: 'Poppins', sans-serif;
+    font-size: 14px;
+}
+
+/* ================================
+   SOURCE NOTE
+================================ */
+.source-note {
+    margin-top: 16px;
+    font-size: 12px;
+    color: #888;
+    text-align: center;
+    font-style: italic;
     font-family: 'Lora', serif;
-    font-size: 18px;
-    font-weight: 400;
+    padding-top: 12px;
+    border-top: 1px solid #e5e7eb;
+}
+
+/* ================================
+   RESPONSIVE DESIGN
+================================ */
+@media (max-width: 768px) {
+    .container {
+        width: 100%;
+        height: auto;
+        min-height: 100vh;
+        margin-left: 90px;
+        padding: 15px;
+    }
+
+    .main-title,
+    .chart-title {
+        font-size: 1.5rem !important;
+    }
+
+    .chart-subtitle {
+        font-size: 1rem;
+    }
+
+    .header {
+        padding: 0 20px 15px 20px;
+    }
+
+    #legendContainer {
+        position: static;
+        margin: 0 auto 20px auto;
+        width: fit-content;
+    }
+
+    #controls {
+        padding: 12px;
+    }
+
+    #yearSlider {
+        width: 100%;
+        max-width: 250px;
+    }
+
+    #controls button {
+        font-size: 12px;
+        padding: 6px 12px;
+        margin: 0 4px;
+    }
+
+    #yearDisplay {
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    .container {
+        margin-left: 80px;
+        padding: 10px;
+    }
+
+    .main-title,
+    .chart-title {
+        font-size: 1.25rem !important;
+    }
+
+    .chart-subtitle {
+        font-size: 0.9rem;
+    }
+
+    #controls button {
+        font-size: 11px;
+        padding: 5px 10px;
+        margin: 0 3px;
+    }
+
+    .source-note {
+        font-size: 11px;
+    }
+
+    #svganchor {
+        margin: 10px 0;
+    }
+}
+
+@media (min-width: 1400px) {
+    .container {
+        max-width: 1600px;
+    }
+
+    .main-title,
+    .chart-title {
+        font-size: 2.3rem !important;
+    }
+
+    .chart-subtitle {
+        font-size: 1.2rem;
+    }
 }

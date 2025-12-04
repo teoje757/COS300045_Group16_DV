@@ -1,5 +1,43 @@
 /* Q2 Visualization Styles */
 
+body {
+    background: #f0f4f8;
+    min-height: 100vh;
+    margin: 0;
+    padding: 20px;
+    position: relative;
+}
+
+/* Q5-consistent typography */
+h1 {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    color: #1e3a5f;
+    font-size: 28px;
+    margin: 10px 0 5px 0;
+    text-align: center;
+    letter-spacing: -0.5px;
+}
+
+.subtitle {
+    font-size: 14px;
+    margin: 5px 0 15px 0;
+    color: #666;
+    text-align: center;
+    font-family: 'Lora', serif;
+    font-weight: 400;
+    line-height: 1.5;
+}
+
+p {
+    font-size: 12px;
+    margin: 5px 0;
+    color: #444;
+    text-align: center;
+    font-family: 'Lora', serif;
+    font-weight: 400;
+}
+
 /* --- Main chart container --- */
 #chart {
     width: 100%;
@@ -142,4 +180,11 @@ svg {
     .visualization-container > *:not(#chart):not(.small-multiples-container) {
         margin-top: 0 !important;
     }
+}
+
+/* `.container` is defined globally in `css/style.css` to ensure consistent sizing across pages. */
+
+/* Slightly reduced padding for the visualization wrapper so content appears tighter */
+.visualization-container {
+    padding: 24px;
 }
