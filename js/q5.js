@@ -64,8 +64,9 @@ d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", function (error, csvData
     // Color scale
     colorScale = d3.scale.linear()
     .domain([0, maxValue * 0.33, maxValue * 0.66, maxValue])
-    .range(["#FEC59A", "#FE9F5D", "#FD6C41", "#FC2A0D"])
+    .range(["#C8F7F0", "#7DDDE2", "#4AA8E0", "#2F5BA3"])
     .interpolate(d3.interpolateHcl);
+
 
 
     // Create responsive SVG using viewBox
@@ -246,7 +247,8 @@ d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", function (error, csvData
             // -----------------------------
             // FIXED LEGEND GRADIENT (4-color scale)
             // -----------------------------
-            const legendColors = ["#FEC59A", "#FE9F5D", "#FD6C41", "#FC2A0D"];
+            // Pastel legend gradient (Option A)
+            const legendColors = ["#C8F7F0", "#7DDDE2", "#4AA8E0", "#2F5BA3"];
 
             gradient.selectAll("stop")
                 .data(legendColors)
@@ -254,6 +256,7 @@ d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", function (error, csvData
                 .append("stop")
                 .attr("offset", (d, i) => i / (legendColors.length - 1))
                 .attr("stop-color", d => d);
+
 
 
             const legend = legendSvg.append("g")

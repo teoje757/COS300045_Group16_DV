@@ -181,16 +181,14 @@ body {
 }
 
 .state-path {
-    stroke: #333;
-    stroke-width: 0.5;
-    transition: fill 0.3s ease;
-    cursor: pointer;
+    stroke: none;
 }
 
 .state-path:hover {
-    stroke: #000;
-    stroke-width: 1.5;
+    stroke: #ffffff;
+    stroke-width: 2;
 }
+
 
 .state-label {
     pointer-events: none;
@@ -202,21 +200,23 @@ body {
 ================================ */
 .tooltip {
     position: absolute;
-    background: rgba(0, 0, 0, 0.85);
-    color: white;
+    background: #C8F7F0;               /* pastel mint */
+    color: #2F5BA3;                    /* indigo text */
+    border: 1px solid #7DDDE2;         /* soft teal outline */
     padding: 10px 14px;
-    border-radius: 6px;
+    border-radius: 8px;
     font-size: 13px;
     pointer-events: none;
     opacity: 0;
-    transition: opacity 0.3s;
+    transition: opacity 0.25s;
     z-index: 1000;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     font-family: 'Poppins', sans-serif;
     line-height: 1.6;
     white-space: nowrap;
     transform: translateX(-50%);
 }
+
 
 .tooltip strong {
     font-weight: 600;
