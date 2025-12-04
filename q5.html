@@ -18,31 +18,35 @@
         /* ================================
            BACK BUTTON (Option A Pastel)
         ================================ */
-        .back-button-container {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            z-index: 999;
-        }
+        .back-circle {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    width: 40px;
+    height: 40px;
+    background: white;                  /* clean white icon button */
+    border-radius: 50%;                 /* makes it round */
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: 0.25s ease;
+}
 
-        .back-button {
-            font-family: 'Poppins', sans-serif;
-            font-size: 14px;
-            font-weight: 600;
-            padding: 8px 14px;
-            background: #C8F7F0;   /* pastel mint */
-            color: #2F5BA3;        /* indigo */
-            border: 1px solid #7DDDE2; /* teal border */
-            border-radius: 8px;
-            text-decoration: none;
-            transition: 0.25s;
-            display: inline-block;
-        }
+.back-circle:hover {
+    transform: translateX(-3px);        /* subtle slide on hover */
+}
 
-        .back-button:hover {
-            background: #7DDDE2;
-            color: white;
-        }
+.back-arrow {
+    font-family: 'Poppins', sans-serif;
+    font-size: 20px;
+    font-weight: 600;
+    color: #2F5BA3;                      /* dark blue (same as your title text) */
+    text-decoration: none;
+    line-height: 1;
+}
+
     </style>
 
 </head>
@@ -65,11 +69,11 @@
 
         <div class="visualization-container">
 
-            <div class="header" style="text-align:center; margin-bottom: 30px;">
+           <div class="header" style="text-align:center; margin-bottom: 30px;">
 
-                <!-- ⭐ NEW BACK BUTTON (Option A) ⭐ -->
-                <div class="back-button-container">
-                    <a href="q5.html" class="back-button">← Back</a>
+                <!-- Simple Circular Back Button -->
+                <div class="back-circle">
+                    <a href="q5.html" class="back-arrow">←</a>
                 </div>
 
                 <h1 id="dynamic-title" class="main-title chart-title">
