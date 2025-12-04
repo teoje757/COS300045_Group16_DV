@@ -1,5 +1,5 @@
 // ======================================================
-// Australia State Heatmap — Fully Fixed + Rewritten
+// Australia State Heatmap – Fully Fixed + Rewritten
 // ======================================================
 
 // Global state
@@ -143,12 +143,14 @@ d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", function (error, csvData
                         .html(`<strong>${rawName}</strong><br>Year: ${currentYear}<br>Fines: ${value.toLocaleString()}`);
                 })
                 .on("mousemove", () => {
+                    // Get mouse position relative to the page
                     const pageX = d3.event.pageX || d3.event.clientX + window.scrollX;
                     const pageY = d3.event.pageY || d3.event.clientY + window.scrollY;
-                    const containerRect = document.getElementById('container').getBoundingClientRect();
-                    let left = pageX - containerRect.left + 10;
-                    let top = pageY - containerRect.top - 50;
-                    tooltip.style("left", Math.max(5, left) + "px").style("top", Math.max(5, top) + "px");
+                    
+                    // Position tooltip near cursor
+                    // Offset by 15px to the right and 15px above the cursor
+                    tooltip.style("left", (pageX + 15) + "px")
+                           .style("top", (pageY - 15) + "px");
                 })
                 .on("mouseout", () => tooltip.style("opacity", 0));
 
