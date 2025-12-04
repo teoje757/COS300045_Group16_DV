@@ -192,17 +192,20 @@ body {
 
 .state-label {
     pointer-events: none;
+    font-family: 'Poppins', sans-serif !important;
+    fill: #2F5BA3; /* optional: matches pastel theme */
     text-shadow: 0 0 3px rgba(255, 255, 255, 0.8);
 }
+
 
 /* ================================
    TOOLTIP - Match Q4 Style
 ================================ */
 .tooltip {
     position: absolute;
-    background: #C8F7F0;               /* pastel mint */
-    color: #2F5BA3;                    /* indigo text */
-    border: 1px solid #7DDDE2;         /* soft teal outline */
+    background:#2F5BA3;             
+    color: #C8F7F0;                
+    border: 1px solid #7DDDE2;         
     padding: 10px 14px;
     border-radius: 8px;
     font-size: 13px;

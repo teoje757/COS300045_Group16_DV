@@ -245,9 +245,8 @@ d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", function (error, csvData
                 .attr("id", "legend-gradient");
 
             // -----------------------------
-            // FIXED LEGEND GRADIENT (4-color scale)
+            // LEGEND GRADIENT (4-color scale)
             // -----------------------------
-            // Pastel legend gradient (Option A)
             const legendColors = ["#C8F7F0", "#7DDDE2", "#4AA8E0", "#2F5BA3"];
 
             gradient.selectAll("stop")
@@ -256,6 +255,7 @@ d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", function (error, csvData
                 .append("stop")
                 .attr("offset", (d, i) => i / (legendColors.length - 1))
                 .attr("stop-color", d => d);
+
 
 
 
@@ -275,7 +275,7 @@ d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", function (error, csvData
             const legendAxis = d3.svg.axis()
                 .scale(legendScale)
                 .orient("bottom")
-                .ticks(5)
+                .ticks(4)
                 .tickFormat(d3.format(".2s"));
 
             legend.append("g")
