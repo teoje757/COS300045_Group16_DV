@@ -142,31 +142,38 @@ d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", function (error, csvData
                     tooltip.style("opacity", 1)
                         .html(`<strong>${rawName}</strong><br>Year: ${currentYear}<br>Fines: ${value.toLocaleString()}`);
                 })
+
+                // -------------------------------------------------------------------
+                // FIXED TOOLTIP POSITIONING (NO MORE OFFSET ON SCROLL)
+                // -------------------------------------------------------------------
                 .on("mousemove", function(d) {
-                    // Get the path's centroid (same as label position)
                     const centroid = path.centroid(d);
-                    
-                    // Get SVG element's position and size
+
+                    // SVG element and bounding box
                     const svgNode = svg.node();
                     const svgRect = svgNode.getBoundingClientRect();
-                    
-                    // Calculate scale factor (viewBox to actual size)
+
+                    // ViewBox → Actual pixel scaling
                     const viewBoxWidth = w;
                     const actualWidth = svgRect.width;
                     const scale = actualWidth / viewBoxWidth;
-                    
-                    // Convert SVG coordinates to screen coordinates
-                    const screenX = centroid[0] * scale;
-                    const screenY = centroid[1] * scale;
-                    
-                    // Calculate position relative to viewport (not page)
-                    const viewportX = svgRect.left + screenX;
-                    const viewportY = svgRect.top + screenY;
-                    
-                    // Position tooltip centered above the state
-                    tooltip.style("left", viewportX + "px")
-                           .style("top", (viewportY - 50) + "px");
+
+                    // Convert to pixels inside SVG
+                    const pixelX = svgRect.left + centroid[0] * scale;
+                    const pixelY = svgRect.top + centroid[1] * scale;
+
+                    // Page scroll offsets
+                    const pageX = window.scrollX;
+                    const pageY = window.scrollY;
+
+                    // Container scroll offset
+                    const container = document.querySelector(".container");
+                    const containerScrollY = container ? container.scrollTop : 0;
+
+                    tooltip.style("left", (pixelX + pageX) + "px")
+                           .style("top", (pixelY + pageY - containerScrollY - 50) + "px");
                 })
+
                 .on("mouseout", () => tooltip.style("opacity", 0));
 
             // --------------------------------------------------
@@ -189,7 +196,7 @@ d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", function (error, csvData
                 });
 
             // --------------------------------------------------
-            // LEGEND BELOW SLIDER
+            // LEGEND
             // --------------------------------------------------
             const legendSvg = d3.select("#legendContainer")
                 .append("svg")
