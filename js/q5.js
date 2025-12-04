@@ -1,5 +1,5 @@
 // ======================================================
-// Australia State Heatmap – Fully Fixed + Rewritten
+// Australia State Heatmap – Tooltip position fixed relative to offsetParent
 // ======================================================
 
 // Global state
@@ -11,10 +11,10 @@ let svg;
 let dataMap = {};
 
 // Dimensions
-const w = 1100; // Increased from 850 to match card width
-const h = 700;
+const w = 1100; // viewBox width
+const h = 700;  // viewBox height
 
-// Projection
+// Projection (d3v3 style)
 const projection = d3.geo.mercator()
     .center([132, -28])
     .translate([w / 2, h / 2])
@@ -22,10 +22,10 @@ const projection = d3.geo.mercator()
 
 const path = d3.geo.path().projection(projection);
 
-// Tooltip
+// Tooltip selection
 const tooltip = d3.select("#tooltip");
 
-// Correct mapping: GeoJSON → CSV jurisdiction codes
+// Geo → CSV codes mapping
 const geoToCsv = {
     "New South Wales": "NSW",
     "Victoria": "VIC",
@@ -67,7 +67,7 @@ d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", function (error, csvData
         .range(["#ffffcc", "#800026"])
         .interpolate(d3.interpolateHcl);
 
-    // Create SVG (responsive via viewBox)
+    // Create responsive SVG using viewBox
     svg = d3.select("#svganchor")
         .append("svg")
         .attr("viewBox", "0 0 " + w + " " + h)
@@ -143,38 +143,73 @@ d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", function (error, csvData
                         .html(`<strong>${rawName}</strong><br>Year: ${currentYear}<br>Fines: ${value.toLocaleString()}`);
                 })
 
-                // -------------------------------------------------------------------
-                // FIXED TOOLTIP POSITIONING (NO MORE OFFSET ON SCROLL)
-                // -------------------------------------------------------------------
+                // ---------------------------
+                // Robust tooltip positioning:
+                // compute position relative to tooltip.offsetParent
+                // ---------------------------
                 .on("mousemove", function(d) {
-                    const centroid = path.centroid(d);
+                    // 1) centroid in SVG viewBox coordinates
+                    const centroid = path.centroid(d); // [x, y] in viewBox coords
 
-                    // SVG element and bounding box
+                    // 2) find bounding rects
                     const svgNode = svg.node();
-                    const svgRect = svgNode.getBoundingClientRect();
+                    const svgRect = svgNode.getBoundingClientRect(); // relative to viewport
 
-                    // ViewBox → Actual pixel scaling
-                    const viewBoxWidth = w;
+                    // determine the actual scale factor (width)
                     const actualWidth = svgRect.width;
-                    const scale = actualWidth / viewBoxWidth;
+                    const scale = actualWidth / w; // viewBox width -> actual pixels
 
-                    // Convert to pixels inside SVG
-                    const pixelX = svgRect.left + centroid[0] * scale;
-                    const pixelY = svgRect.top + centroid[1] * scale;
+                    // centroid in page (document) coordinates:
+                    const xInViewport = svgRect.left + centroid[0] * scale;
+                    const yInViewport = svgRect.top + centroid[1] * scale;
 
-                    // Page scroll offsets
-                    const pageX = window.scrollX;
-                    const pageY = window.scrollY;
+                    // convert viewport coords to document coords
+                    const xInDocument = xInViewport + window.scrollX;
+                    const yInDocument = yInViewport + window.scrollY;
 
-                    // Container scroll offset
-                    const container = document.querySelector(".container");
-                    const containerScrollY = container ? container.scrollTop : 0;
+                    // 3) compute coordinates relative to tooltip's offsetParent
+                    // tooltip.offsetParent is the element that CSS absolute positioning uses
+                    const ttNode = tooltip.node();
+                    const offsetParent = ttNode.offsetParent || document.body;
+                    const parentRect = offsetParent.getBoundingClientRect();
+                    const parentDocLeft = parentRect.left + window.scrollX;
+                    const parentDocTop = parentRect.top + window.scrollY;
 
-                    tooltip.style("left", (pixelX + pageX) + "px")
-                           .style("top", (pixelY + pageY - containerScrollY - 50) + "px");
+                    // position inside offsetParent (taking its scroll into account)
+                    const relativeLeft = xInDocument - parentDocLeft + offsetParent.scrollLeft;
+                    const relativeTop = yInDocument - parentDocTop + offsetParent.scrollTop;
+
+                    // measure tooltip size (after content set)
+                    const ttW = ttNode.offsetWidth;
+                    const ttH = ttNode.offsetHeight;
+
+                    // final position: center horizontally, place above the centroid
+                    let finalLeft = relativeLeft - (ttW / 2);
+                    let finalTop = relativeTop - ttH - 12; // 12px gap above the centroid
+
+                    // Clamp so tooltip stays inside offsetParent padding
+                    const pad = 8;
+                    const maxLeft = offsetParent.clientWidth - ttW - pad;
+                    if (finalLeft < pad) finalLeft = pad;
+                    if (finalLeft > maxLeft) finalLeft = maxLeft;
+
+                    // If finalTop would go above the top of the parent, flip to below centroid
+                    const minTop = pad;
+                    if (finalTop < minTop) {
+                        finalTop = relativeTop + 12; // place below centroid if not enough space
+                        // ensure it won't overflow bottom
+                        const maxTop = offsetParent.clientHeight - ttH - pad;
+                        if (finalTop > maxTop) finalTop = maxTop;
+                    }
+
+                    // Apply styles (position is relative to offsetParent)
+                    tooltip.style("left", finalLeft + "px")
+                           .style("top", finalTop + "px");
                 })
 
-                .on("mouseout", () => tooltip.style("opacity", 0));
+                .on("mouseout", function () {
+                    tooltip.style("opacity", 0);
+                });
 
             // --------------------------------------------------
             // STATE LABELS
