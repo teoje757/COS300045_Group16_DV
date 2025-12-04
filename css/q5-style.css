@@ -156,12 +156,24 @@ body {
     padding: 12px 16px;
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-    border: 1px solid #e5e7eb;
+
+    /* 🔵 Change border here (choose one option) */
+    /* border: none; */                                  /* Option 1: No border */
+    border: 1px solid #7DDDE2; /* pastel teal border */  /* Option 2: Pastel border */
 }
 
 #legendContainer svg {
     display: block;
 }
+
+/* 🔤 Apply Poppins font to ALL text inside legend SVG */
+#legendContainer text {
+    font-family: 'Poppins', sans-serif !important;
+    fill: #2F5BA3;              /* pastel indigo text (matches your heatmap palette) */
+    font-weight: 600;           /* optional – makes numbers sharper */
+    font-size: 12px;            /* adjust if needed */
+}
+
 
 /* ================================
    SVG AND MAP CONTAINER
