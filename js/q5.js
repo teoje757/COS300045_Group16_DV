@@ -142,15 +142,23 @@ d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", function (error, csvData
                     tooltip.style("opacity", 1)
                         .html(`<strong>${rawName}</strong><br>Year: ${currentYear}<br>Fines: ${value.toLocaleString()}`);
                 })
-                .on("mousemove", () => {
-                    // Get mouse position relative to the page
-                    const pageX = d3.event.pageX || d3.event.clientX + window.scrollX;
-                    const pageY = d3.event.pageY || d3.event.clientY + window.scrollY;
+                .on("mousemove", function(d) {
+                    // Get the bounding box of the state being hovered
+                    const bbox = this.getBBox();
+                    const svgRect = svg.node().getBoundingClientRect();
                     
-                    // Position tooltip near cursor
-                    // Offset by 15px to the right and 15px above the cursor
-                    tooltip.style("left", (pageX + 15) + "px")
-                           .style("top", (pageY - 15) + "px");
+                    // Calculate center of the state in screen coordinates
+                    const centerX = bbox.x + bbox.width / 2;
+                    const centerY = bbox.y + bbox.height / 2;
+                    
+                    // Convert SVG coordinates to page coordinates
+                    const pageX = svgRect.left + centerX + window.scrollX;
+                    const pageY = svgRect.top + centerY + window.scrollY;
+                    
+                    // Position tooltip centered on the state
+                    tooltip.style("left", (pageX) + "px")
+                           .style("top", (pageY - 40) + "px")
+                           .style("transform", "translateX(-50%)");
                 })
                 .on("mouseout", () => tooltip.style("opacity", 0));
 
