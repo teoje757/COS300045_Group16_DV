@@ -143,22 +143,29 @@ d3.csv("data/Q5_Mobile_phone_enforcement_patterns.csv", function (error, csvData
                         .html(`<strong>${rawName}</strong><br>Year: ${currentYear}<br>Fines: ${value.toLocaleString()}`);
                 })
                 .on("mousemove", function(d) {
-                    // Get the bounding box of the state being hovered
-                    const bbox = this.getBBox();
-                    const svgRect = svg.node().getBoundingClientRect();
+                    // Get the path's centroid (same as label position)
+                    const centroid = path.centroid(d);
                     
-                    // Calculate center of the state in screen coordinates
-                    const centerX = bbox.x + bbox.width / 2;
-                    const centerY = bbox.y + bbox.height / 2;
+                    // Get SVG element's position and size
+                    const svgNode = svg.node();
+                    const svgRect = svgNode.getBoundingClientRect();
                     
-                    // Convert SVG coordinates to page coordinates
-                    const pageX = svgRect.left + centerX + window.scrollX;
-                    const pageY = svgRect.top + centerY + window.scrollY;
+                    // Calculate scale factor (viewBox to actual size)
+                    const viewBoxWidth = w;
+                    const actualWidth = svgRect.width;
+                    const scale = actualWidth / viewBoxWidth;
                     
-                    // Position tooltip centered on the state
-                    tooltip.style("left", (pageX) + "px")
-                           .style("top", (pageY - 40) + "px")
-                           .style("transform", "translateX(-50%)");
+                    // Convert SVG coordinates to screen coordinates
+                    const screenX = centroid[0] * scale;
+                    const screenY = centroid[1] * scale;
+                    
+                    // Convert to page coordinates
+                    const pageX = svgRect.left + screenX + window.scrollX;
+                    const pageY = svgRect.top + screenY + window.scrollY;
+                    
+                    // Position tooltip centered above the state
+                    tooltip.style("left", pageX + "px")
+                           .style("top", (pageY - 50) + "px");
                 })
                 .on("mouseout", () => tooltip.style("opacity", 0));
 
