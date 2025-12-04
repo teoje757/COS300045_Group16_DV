@@ -1,15 +1,82 @@
-/* q5-style.css — page-specific styles that match other pages */
+/* q5-style.css – Complete styling to match Q4 layout */
 
-/* Visualization card wrapper */
+/* ================================
+   GLOBAL RESETS & BASE STYLES
+================================ */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Lora', serif;
+    line-height: 1.6;
+    color: #333;
+    background-color: #f0f4f8;
+    min-height: 100vh;
+    margin: 0;
+    padding: 20px;
+    position: relative;
+    overflow-x: hidden;
+}
+
+/* ================================
+   CONTAINER - Match Q4 Structure
+================================ */
+.container {
+    width: 95%;
+    max-width: 900px;
+    height: 95vh;
+    max-height: 900px;
+    margin: 12px auto;
+    margin-left: calc(80px + 12px); /* Reserve space for left nav + offset */
+    padding: 12px 20px;
+    background-color: white;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    position: relative;
+}
+
+/* ================================
+   VISUALIZATION CONTAINER
+================================ */
 .visualization-container {
     background: #FCFAF9;
     border-radius: 8px;
     padding: 24px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     position: relative;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
 }
 
-/* Header title/subtitle used across pages */
+/* ================================
+   TYPOGRAPHY - Match Q4 Exactly
+================================ */
+.header {
+    text-align: center;
+    margin-bottom: 30px;
+    padding: 0 60px 20px 60px;
+    border-bottom: 2px solid #e5e7eb;
+}
+
+.main-title {
+    font-family: 'Poppins', sans-serif;
+    font-size: 2rem !important;
+    font-weight: 700 !important;
+    color: #2a3a4d !important;
+    margin: 0 0 8px 0;
+    letter-spacing: 0.01em;
+    line-height: 1.2;
+    text-align: center;
+}
+
 .chart-title {
     font-family: 'Poppins', sans-serif;
     margin: 0 0 10px 0;
@@ -27,38 +94,250 @@
     display: inline-block;
     text-align: center;
     font-weight: 400;
+    font-family: 'Lora', serif;
 }
 
-/* SVG anchor and tooltip */
+/* ================================
+   CONTROLS - Match Q4 Style
+================================ */
+#controls {
+    text-align: center;
+    margin: 12px 0 18px;
+    padding: 16px;
+    background: #FCFAF9;
+    border-radius: 6px;
+    border: 1px solid #e5e7eb;
+}
+
+#controls button {
+    background: #f0f4f8;
+    border: 1px solid #cbd5e0;
+    color: #4a5568;
+    cursor: pointer;
+    font-size: 13px;
+    padding: 8px 16px;
+    border-radius: 6px;
+    margin: 0 6px;
+    transition: all 0.3s;
+    font-weight: 500;
+    font-family: 'Poppins', sans-serif;
+}
+
+#controls button:hover {
+    background: #3498db;
+    color: white;
+    border-color: #3498db;
+}
+
+#yearDisplay {
+    font-family: 'Poppins', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: #1e3a5f;
+    margin: 10px 0;
+    display: block;
+}
+
+#yearSlider {
+    width: 300px;
+    margin: 10px auto;
+    display: block;
+}
+
+/* ================================
+   LEGEND - Position Top Left
+================================ */
+#legendContainer {
+    position: absolute;
+    top: 24px;
+    left: 24px;
+    z-index: 10;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 12px 16px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    border: 1px solid #e5e7eb;
+}
+
+#legendContainer svg {
+    display: block;
+}
+
+/* ================================
+   SVG AND MAP CONTAINER
+================================ */
 #svganchor {
     display: flex;
     justify-content: center;
     align-items: center;
     flex: 1;
-    overflow: hidden;
+    overflow: visible;
+    margin: 20px 0;
 }
 
+#svganchor svg {
+    max-width: 100%;
+    height: auto;
+}
+
+.state-path {
+    stroke: #333;
+    stroke-width: 0.5;
+    transition: fill 0.3s ease;
+    cursor: pointer;
+}
+
+.state-path:hover {
+    stroke: #000;
+    stroke-width: 1.5;
+}
+
+.state-label {
+    pointer-events: none;
+    text-shadow: 0 0 3px rgba(255, 255, 255, 0.8);
+}
+
+/* ================================
+   TOOLTIP - Match Q4 Style
+================================ */
 .tooltip {
     position: absolute;
-    padding: 10px 14px;
-    background: rgba(0,0,0,0.85);
+    background: rgba(0, 0, 0, 0.85);
     color: white;
+    padding: 10px 14px;
     border-radius: 6px;
+    font-size: 13px;
     pointer-events: none;
     opacity: 0;
-    font-size: 14px;
-    z-index: 999;
-    transition: opacity 0.15s ease-in-out;
+    transition: opacity 0.3s;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    font-family: 'Poppins', sans-serif;
+    line-height: 1.6;
 }
 
+.tooltip strong {
+    font-weight: 600;
+    font-size: 14px;
+}
+
+/* ================================
+   LOADING STATE
+================================ */
+#loading {
+    text-align: center;
+    padding: 40px;
+    color: #6b7280;
+    font-family: 'Poppins', sans-serif;
+    font-size: 14px;
+}
+
+/* ================================
+   SOURCE NOTE
+================================ */
 .source-note {
-    margin-top: 10px;
+    margin-top: 16px;
     font-size: 12px;
     color: #888;
     text-align: center;
     font-style: italic;
+    font-family: 'Lora', serif;
+    padding-top: 12px;
+    border-top: 1px solid #e5e7eb;
 }
 
-/* Controls */
-#controls { text-align: center; margin: 12px 0 18px; }
-#yearDisplay { font-family: 'Poppins', sans-serif; font-size: 14px; font-weight: 700; color: #1e3a5f; margin: 6px 0; }
+/* ================================
+   RESPONSIVE DESIGN
+================================ */
+@media (max-width: 768px) {
+    .container {
+        width: 100%;
+        height: auto;
+        min-height: 100vh;
+        margin-left: 90px;
+        padding: 15px;
+    }
+
+    .main-title,
+    .chart-title {
+        font-size: 1.5rem !important;
+    }
+
+    .chart-subtitle {
+        font-size: 1rem;
+    }
+
+    .header {
+        padding: 0 20px 15px 20px;
+    }
+
+    #legendContainer {
+        position: static;
+        margin: 0 auto 20px auto;
+        width: fit-content;
+    }
+
+    #controls {
+        padding: 12px;
+    }
+
+    #yearSlider {
+        width: 100%;
+        max-width: 250px;
+    }
+
+    #controls button {
+        font-size: 12px;
+        padding: 6px 12px;
+        margin: 0 4px;
+    }
+
+    #yearDisplay {
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    .container {
+        margin-left: 80px;
+        padding: 10px;
+    }
+
+    .main-title,
+    .chart-title {
+        font-size: 1.25rem !important;
+    }
+
+    .chart-subtitle {
+        font-size: 0.9rem;
+    }
+
+    #controls button {
+        font-size: 11px;
+        padding: 5px 10px;
+        margin: 0 3px;
+    }
+
+    .source-note {
+        font-size: 11px;
+    }
+
+    #svganchor {
+        margin: 10px 0;
+    }
+}
+
+@media (min-width: 1400px) {
+    .container {
+        max-width: 1600px;
+    }
+
+    .main-title,
+    .chart-title {
+        font-size: 2.3rem !important;
+    }
+
+    .chart-subtitle {
+        font-size: 1.2rem;
+    }
+}
