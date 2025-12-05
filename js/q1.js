@@ -290,6 +290,56 @@ async function createChart() {
                 });
         });
 
+        // Create a single tooltip element (reuse for all points)
+        let tooltip = d3.select('body').select('.tooltip');
+        if (tooltip.empty()) {
+            tooltip = d3.select('body').append('div').attr('class', 'tooltip').style('opacity', 0);
+        }
+
+        // Attach tooltip handlers to points (show year, method, value, color swatch)
+        d3.selectAll('.point')
+            .on('mouseenter.tooltip', function(event, d) {
+                const method = d.method || (d.police != null ? 'Police' : 'Camera');
+                const year = d.date ? d3.timeFormat('%Y')(d.date) : '';
+                const valueText = (d.value == null || isNaN(d.value)) ? 'N/A' : d.value.toLocaleString();
+
+                const html = `
+                    <div class="tooltip-date" style="font-weight:700;margin-bottom:6px;">${year}</div>
+                    <div class="tooltip-value" style="display:flex;align-items:center;gap:10px;">
+                        <span class="tooltip-color" style="width:12px;height:12px;border-radius:2px;display:inline-block;background:${colorMap[method] || '#999'}"></span>
+                        <span style="font-weight:600;color:#fff;">${method}:</span>
+                        <span style="color:#fff;">${valueText}</span>
+                    </div>
+                `;
+
+                tooltip.html(html).style('opacity', 1);
+
+                // position tooltip near cursor but keep inside viewport
+                const rect = tooltip.node().getBoundingClientRect();
+                let left = event.pageX + 12;
+                let top = event.pageY - rect.height - 12;
+                if (left + rect.width > window.innerWidth - 8) left = event.pageX - rect.width - 12;
+                if (top < 8) top = event.pageY + 12;
+                tooltip.style('left', left + 'px').style('top', top + 'px');
+
+                // emphasize the hovered point
+                d3.select(this).raise().transition().duration(120).attr('r', 8).style('stroke-width', 3);
+            })
+            .on('mousemove.tooltip', function(event, d) {
+                const tt = d3.select('body').select('.tooltip');
+                if (tt.empty()) return;
+                const rect = tt.node().getBoundingClientRect();
+                let left = event.pageX + 12;
+                let top = event.pageY - rect.height - 12;
+                if (left + rect.width > window.innerWidth - 8) left = event.pageX - rect.width - 12;
+                if (top < 8) top = event.pageY + 12;
+                tt.style('left', left + 'px').style('top', top + 'px');
+            })
+            .on('mouseleave.tooltip', function() {
+                d3.select('body').selectAll('.tooltip').style('opacity', 0);
+                d3.select(this).transition().duration(120).attr('r', 4.5).style('stroke-width', 2);
+            });
+
         // Add direct labels at end of lines
         svg.selectAll('.direct-label')
             .data(Array.from(nested))
